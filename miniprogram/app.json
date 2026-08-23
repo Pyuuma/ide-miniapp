@@ -1,0 +1,46 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/points/points",
+    "pages/profile/profile",
+    "pages/setup-account/setup-account",
+    "pages/review-submit/review-submit",
+    "pages/review-list/review-list",
+    "pages/leaderboard/leaderboard",
+    "pages/privacy/privacy",
+    "pages/admin/home/home",
+    "pages/admin/scan/scan",
+    "pages/admin/review/review",
+    "pages/admin/audit/audit",
+    "pages/admin/adjust/adjust"
+  ],
+  "window": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "桌游店会员",
+    "navigationBarBackgroundColor": "#ffffff",
+    "backgroundColor": "#f5f6fa"
+  },
+  "tabBar": {
+    "color": "#8a8f99",
+    "selectedColor": "#1a1a1a",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "会员卡"
+      },
+      {
+        "pagePath": "pages/points/points",
+        "text": "积分"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "text": "我的"
+      }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
+}

@@ -1,0 +1,88 @@
+<view class="page">
+  <view class="card stats">
+    <view class="stat">
+      <view class="num">{{weekStats.total}}</view>
+      <view class="label">本周录入</view>
+    </view>
+    <view class="stat">
+      <view class="num">{{weekStats.special}}</view>
+      <view class="label">特别录入</view>
+    </view>
+    <view class="stat">
+      <view class="num">{{weekStats.ratio}}%</view>
+      <view class="label">特别占比</view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="filter-row">
+      <text class="label">会员</text>
+      <view class="member-filter">
+        <input class="input" value="{{memberQ}}" placeholder="账号名/昵称" bindinput="onMemberSearchInput" />
+        <button class="btn-plain small" bindtap="onMemberSearch">查找</button>
+      </view>
+      <text wx:if="{{memberLabel}}" class="picked">{{memberLabel}}</text>
+    </view>
+    <view class="filter-row">
+      <text class="label">操作人</text>
+      <input class="input" value="{{actorId}}" placeholder="openid 或昵称（精确匹配 openid）" bindinput="onActorInput" />
+    </view>
+    <view class="filter-row">
+      <text class="label">变动类型</text>
+      <view class="options">
+        <view
+          wx:for="{{changeOptions}}"
+          wx:key="id"
+          class="opt {{changeType === item.id ? 'active' : ''}}"
+          data-id="{{item.id}}"
+          bindtap="onChangeType"
+        >{{item.name}}</view>
+      </view>
+    </view>
+    <view class="filter-row">
+      <text class="label">时间</text>
+      <view class="options">
+        <view
+          wx:for="{{timeOptions}}"
+          wx:key="id"
+          class="opt {{timeRange === item.id ? 'active' : ''}}"
+          data-id="{{item.id}}"
+          bindtap="onTimeRange"
+        >{{item.name}}</view>
+      </view>
+    </view>
+    <view class="filter-actions">
+      <button class="btn-plain small" bindtap="onResetFilters">重置</button>
+      <button class="btn-primary small" bindtap="onApplyFilters">应用筛选</button>
+    </view>
+  </view>
+
+  <view wx:if="{{items.length}}" class="card">
+    <view wx:for="{{items}}" wx:key="id" class="item">
+      <view class="head">
+        <view class="action">{{item.actionText}}<text wx:if="{{item.special}}" class="special"> · {{item.special}}</text></view>
+        <view class="time">{{item.timeText}}</view>
+      </view>
+      <view class="line">会员：{{item.targetText}}</view>
+      <view class="line">
+        操作人：{{item.actorText}} · {{item.changeText}}
+        <text wx:if="{{item.deltaText !== '—'}}">（{{item.deltaText}}</text>
+        <text wx:if="{{item.growthText}}"> · {{item.growthText}}</text>
+        <text wx:if="{{item.deltaText !== '—'}}">）</text>
+      </view>
+      <view wx:if="{{item.reason}}" class="reason">原因：{{item.reason}}</view>
+    </view>
+  </view>
+  <view wx:else class="empty">暂无审计记录</view>
+
+  <view wx:if="{{showMemberPicker}}" class="mask" bindtap="closeMemberPicker">
+    <view class="panel" catchtap="noop">
+      <view class="panel-title">选择会员</view>
+      <view wx:for="{{memberResults}}" wx:key="id" class="result" data-id="{{item.id}}" data-name="{{item.nickname}} @{{item.accountName}}" bindtap="pickMember">
+        {{item.nickname}} @{{item.accountName}}
+      </view>
+      <view wx:if="{{!memberResults.length}}" class="muted">未找到会员</view>
+      <button class="btn-plain" bindtap="closeMemberPicker">取消</button>
+    </view>
+  </view>
+</view>

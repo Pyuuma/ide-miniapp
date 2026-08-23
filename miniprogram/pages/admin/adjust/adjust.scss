@@ -1,0 +1,84 @@
+.tabs {
+  display: flex;
+  margin: 24rpx 24rpx 0;
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 8rpx;
+}
+
+.tab {
+  flex: 1;
+  text-align: center;
+  line-height: 2.4;
+  border-radius: 12rpx;
+  color: #555;
+
+  &.active {
+    background: #1a1a1a;
+    color: #fff;
+  }
+}
+
+.search-row {
+  display: flex;
+  gap: 16rpx;
+}
+
+.search-btn {
+  width: 160rpx;
+  flex-shrink: 0;
+  font-size: 26rpx;
+}
+
+.scan-btn {
+  width: 120rpx;
+  flex-shrink: 0;
+  font-size: 26rpx;
+  padding: 0;
+}
+
+.result {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 22rpx 0;
+  border-bottom: 2rpx solid #f0f1f4;
+}
+
+.arrow {
+  font-size: 44rpx;
+  color: #b0b4bd;
+}
+
+.member-info {
+  .head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .nickname {
+    font-size: 34rpx;
+    font-weight: 600;
+  }
+}
+
+.balances {
+  text-align: right;
+  color: #555;
+  font-size: 26rpx;
+}
+
+.section-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  margin: 28rpx 0 16rpx;
+}
+
+.textarea {
+  height: 140rpx;
+}
+
+.submit {
+  margin-top: 32rpx;
+}

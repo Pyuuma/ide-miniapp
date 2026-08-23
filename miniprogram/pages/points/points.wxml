@@ -1,0 +1,36 @@
+<view class="page">
+  <view class="card summary">
+    <view class="summary-row">
+      <view class="summary-item">
+        <view class="points">{{points}}</view>
+        <view class="label">可兑换积分</view>
+      </view>
+      <view class="summary-item">
+        <view class="points">{{growth}}</view>
+        <view class="label">成长值</view>
+      </view>
+    </view>
+    <view class="level-line">{{levelName}} · <text class="link" bindtap="onTapGrowth">成长值排行榜 ›</text></view>
+  </view>
+
+  <view class="filters">
+    <view class="filter {{sourceType === '' ? 'active' : ''}}" data-type="" bindtap="onFilter">全部</view>
+    <view class="filter {{sourceType === 'consumption' ? 'active' : ''}}" data-type="consumption" bindtap="onFilter">消费</view>
+    <view class="filter {{sourceType === 'review_bonus' ? 'active' : ''}}" data-type="review_bonus" bindtap="onFilter">评论</view>
+    <view class="filter {{sourceType === 'manual_adjust' ? 'active' : ''}}" data-type="manual_adjust" bindtap="onFilter">调整</view>
+    <view class="filter {{sourceType === 'redemption' ? 'active' : ''}}" data-type="redemption" bindtap="onFilter">兑换</view>
+  </view>
+
+  <view wx:if="{{items.length}}" class="card list">
+    <view wx:for="{{items}}" wx:key="id" class="entry">
+      <view class="entry-main">
+        <view class="source">{{item.sourceText}}</view>
+        <view wx:if="{{item.growthText}}" class="growth">{{item.growthText}}</view>
+        <view wx:if="{{item.noteText}}" class="note">{{item.noteText}}</view>
+        <view class="time">{{item.timeText}}</view>
+      </view>
+      <view class="delta">{{item.deltaText}}</view>
+    </view>
+  </view>
+  <view wx:else class="empty">暂无积分记录</view>
+</view>

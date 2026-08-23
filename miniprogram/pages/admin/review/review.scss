@@ -1,0 +1,131 @@
+.tabs {
+  display: flex;
+  margin: 24rpx 24rpx 0;
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 8rpx;
+}
+
+.tab {
+  flex: 1;
+  text-align: center;
+  line-height: 2.4;
+  border-radius: 12rpx;
+  color: #555;
+
+  &.active {
+    background: #1a1a1a;
+    color: #fff;
+  }
+}
+
+.item {
+  padding: 24rpx 0;
+  border-bottom: 2rpx solid #f0f1f4;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.platform {
+  font-size: 30rpx;
+  font-weight: 600;
+}
+
+.status {
+  font-size: 24rpx;
+  color: #8a8f99;
+}
+
+.member {
+  margin-top: 10rpx;
+  font-size: 28rpx;
+}
+
+.meta,
+.history {
+  margin-top: 6rpx;
+  color: #8a8f99;
+  font-size: 24rpx;
+}
+
+.history {
+  background: #f6f7fb;
+  padding: 10rpx 14rpx;
+  border-radius: 8rpx;
+  margin-top: 12rpx;
+}
+
+.text,
+.link {
+  margin-top: 12rpx;
+  color: #555;
+  font-size: 26rpx;
+  word-break: break-all;
+}
+
+.images {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-top: 16rpx;
+}
+
+.shot {
+  width: 150rpx;
+  height: 150rpx;
+  border-radius: 10rpx;
+}
+
+.reason {
+  margin-top: 12rpx;
+  color: #c0392b;
+  font-size: 24rpx;
+}
+
+.actions {
+  display: flex;
+  gap: 20rpx;
+  margin-top: 20rpx;
+
+  button {
+    flex: 1;
+    font-size: 28rpx;
+  }
+}
+
+.mask {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: flex-end;
+  z-index: 100;
+}
+
+.panel {
+  width: 100%;
+  background: #fff;
+  border-radius: 28rpx 28rpx 0 0;
+  padding: 40rpx 32rpx calc(40rpx + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+}
+
+.panel-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  text-align: center;
+}
+
+.textarea {
+  height: 160rpx;
+}

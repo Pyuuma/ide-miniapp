@@ -1,0 +1,65 @@
+<view class="page">
+  <view class="tabs">
+    <view class="tab {{tab === 'pending' ? 'active' : ''}}" data-tab="pending" bindtap="switchTab">待审核</view>
+    <view class="tab {{tab === 'processed' ? 'active' : ''}}" data-tab="processed" bindtap="switchTab">已处理</view>
+  </view>
+
+  <view wx:if="{{items.length}}" class="card">
+    <view wx:for="{{items}}" wx:key="_id" class="item">
+      <view class="head">
+        <view class="platform">{{item.platformName}}</view>
+        <view class="status">{{item.statusText}}{{item.specialText ? ' · ' + item.specialText : ''}}</view>
+      </view>
+      <view class="member">{{item.memberName}}</view>
+      <view class="meta">{{item.timeText}} · {{item.usageText}}</view>
+      <view class="history">{{item.historyText}}</view>
+      <view wx:if="{{item.text}}" class="text">{{item.text}}</view>
+      <view wx:if="{{item.link}}" class="link">{{item.link}}</view>
+      <view class="images">
+        <image
+          wx:for="{{item.screenshots}}"
+          wx:for-item="shot"
+          wx:key="*this"
+          class="shot"
+          src="{{shot}}"
+          mode="aspectFill"
+          data-urls="{{item.screenshots}}"
+          data-current="{{shot}}"
+          bindtap="previewImage"
+        ></image>
+      </view>
+      <view wx:if="{{item.status === 'rejected'}}" class="reason">拒绝原因：{{item.rejectReason}}</view>
+      <view wx:if="{{item.status === 'approved' && item.isSpecial}}" class="reason">特别录入原因：{{item.specialReason}}</view>
+      <view wx:if="{{tab === 'pending'}}" class="actions">
+        <button class="btn-plain" data-id="{{item._id}}" bindtap="openReject">拒绝</button>
+        <button class="btn-primary" data-id="{{item._id}}" bindtap="openApprove">通过</button>
+      </view>
+    </view>
+  </view>
+  <view wx:else class="empty">暂无{{tab === 'pending' ? '待审核' : '已处理'}}记录</view>
+
+  <view wx:if="{{panel}}" class="mask" bindtap="closePanel">
+    <view class="panel" catchtap="noop">
+      <view class="panel-title">{{panel.type === 'approve' ? (panel.special ? '特别录入通过' : '确认通过') : '填写拒绝原因'}}</view>
+      <view wx:if="{{panel.special}}" class="muted">该会员此平台本月已达上限，通过将作为特别录入处理。</view>
+      <textarea
+        wx:if="{{panel.special}}"
+        class="textarea"
+        value="{{specialReason}}"
+        maxlength="200"
+        placeholder="特别录入原因（必填）"
+        bindinput="onSpecialReasonInput"
+      ></textarea>
+      <textarea
+        wx:else
+        class="textarea"
+        value="{{reason}}"
+        maxlength="200"
+        placeholder="拒绝原因（必填）"
+        bindinput="onReasonInput"
+      ></textarea>
+      <button class="btn-primary" bindtap="onPanelConfirm" disabled="{{submitting}}">确认</button>
+      <button class="btn-plain" bindtap="closePanel">取消</button>
+    </view>
+  </view>
+</view>

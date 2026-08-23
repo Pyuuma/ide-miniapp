@@ -1,0 +1,41 @@
+<view class="page">
+  <view class="card member-card">
+    <view class="member-top">
+      <image wx:if="{{member.avatar}}" class="avatar" src="{{member.avatar}}" mode="aspectFill"></image>
+      <view wx:else class="avatar avatar-placeholder"></view>
+      <view class="member-info">
+        <view class="nickname">{{member.nickname}}</view>
+        <view class="account">@{{member.accountName}}</view>
+      </view>
+      <view class="level">{{levelName}}</view>
+    </view>
+    <view class="points">{{member.points}}</view>
+    <view class="points-label">可兑换积分</view>
+    <view class="growth-line">成长值 {{member.growth || 0}} · {{levelName}}</view>
+    <view class="store">{{storeName}}</view>
+  </view>
+
+  <view class="card code-card">
+    <view class="code-title">会员码 · 60 秒自动刷新</view>
+    <canvas wx:if="{{token}}" type="2d" id="memberCode" class="code-canvas"></canvas>
+    <view wx:else class="empty">正在生成…</view>
+    <view class="code-tip">剩余 {{countdown}} 秒</view>
+    <button class="btn-plain refresh-btn" bindtap="refreshCode">立即刷新</button>
+    <view class="muted code-fallback">离线无法刷新时，请告知店员账号名：@{{member.accountName}}</view>
+  </view>
+
+  <view class="card actions">
+    <button class="btn-plain" bindtap="onTapReview">评论加分</button>
+    <button class="btn-plain" bindtap="onTapMyReviews">我的加分申请</button>
+    <button wx:if="{{isAdmin}}" class="btn-primary" bindtap="onTapAdmin">管理端</button>
+  </view>
+
+  <view wx:if="{{showPrivacy}}" class="privacy-mask">
+    <view class="privacy-panel">
+      <view class="privacy-title">隐私政策提示</view>
+      <view class="privacy-desc">为向你提供会员积分服务，我们需要收集并处理你的微信身份、昵称、头像、积分与消费记录。请阅读并同意《隐私政策》后继续使用。</view>
+      <view class="privacy-link" bindtap="onViewPrivacy">查看隐私政策</view>
+      <button class="btn-primary" bindtap="onAgreePrivacy">同意并继续</button>
+    </view>
+  </view>
+</view>

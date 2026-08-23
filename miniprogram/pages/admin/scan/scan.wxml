@@ -1,0 +1,73 @@
+<view class="page">
+  <view class="tabs">
+    <view class="tab {{mode === 'scan' ? 'active' : ''}}" data-mode="scan" bindtap="switchMode">扫码</view>
+    <view class="tab {{mode === 'search' ? 'active' : ''}}" data-mode="search" bindtap="switchMode">搜索</view>
+  </view>
+
+  <view wx:if="{{mode === 'scan'}}" class="card scan-card">
+    <button class="btn-primary scan-btn" bindtap="onScan">扫描会员码</button>
+    <view class="muted">请会员打开“会员卡”页出示二维码</view>
+  </view>
+
+  <view wx:else class="card">
+    <view class="search-row">
+      <input class="input" value="{{q}}" placeholder="输入账号名或昵称" bindinput="onSearchInput" />
+      <button class="btn-primary search-btn" bindtap="onSearch" disabled="{{searching}}">搜索</button>
+    </view>
+    <view wx:if="{{results.length}}" class="results">
+      <view wx:for="{{results}}" wx:key="id" class="result" data-id="{{item.id}}" bindtap="pickMember">
+        <view>
+          <view>{{item.nickname}}</view>
+          <view class="muted">@{{item.accountName}} · {{item.points}} 分</view>
+        </view>
+        <text class="arrow">›</text>
+      </view>
+    </view>
+    <view wx:else class="muted empty">输入关键词后点击搜索</view>
+  </view>
+
+  <block wx:if="{{member}}">
+    <view class="card member-info">
+      <view class="head">
+        <view>
+          <view class="nickname">{{member.nickname}}</view>
+          <view class="muted">@{{member.accountName}}</view>
+        </view>
+        <view class="level">{{member.levelName}}</view>
+      </view>
+      <view class="usage {{usage.used >= usage.max ? 'over' : ''}}">
+        本周已录入 {{usage.used}} / {{usage.max}} 次{{usage.used >= usage.max ? '（已达上限）' : ''}}
+      </view>
+    </view>
+
+    <view class="card">
+      <view class="section-title">选择档位</view>
+      <view class="tiers">
+        <view
+          wx:for="{{tiers}}"
+          wx:key="id"
+          class="tier {{selectedTierId === item.id ? 'active' : ''}}"
+          data-id="{{item.id}}"
+          bindtap="selectTier"
+        >
+          <view class="tier-name">{{item.name}}</view>
+          <view class="tier-points">+{{item.points}} 分</view>
+          <view class="tier-amount">默认 ¥{{item.defaultAmount}}</view>
+        </view>
+      </view>
+
+      <view class="section-title">消费金额（可选）</view>
+      <input class="input" type="digit" value="{{amount}}" placeholder="默认金额已预填" bindinput="onAmountInput" />
+
+      <view class="section-title">备注（可选）</view>
+      <input class="input" value="{{note}}" maxlength="200" placeholder="例如：下午场、租桌游…" bindinput="onNoteInput" />
+
+      <block wx:if="{{showSpecialReason}}">
+        <view class="section-title warn">特别录入原因（必填）</view>
+        <textarea class="textarea" value="{{specialReason}}" maxlength="200" placeholder="例如：会员临时加钟、系统补录…" bindinput="onSpecialReasonInput"></textarea>
+      </block>
+
+      <button class="btn-primary submit" bindtap="onSubmit" disabled="{{submitting}}">确认录入 +{{selectedTier ? selectedTier.points : 0}} 分</button>
+    </view>
+  </block>
+</view>

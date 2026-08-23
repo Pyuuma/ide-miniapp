@@ -1,0 +1,58 @@
+<view class="page">
+  <view class="tabs">
+    <view class="tab {{tab === 'add' ? 'active' : ''}}" data-tab="add" bindtap="switchTab">新增</view>
+    <view class="tab {{tab === 'redeem' ? 'active' : ''}}" data-tab="redeem" bindtap="switchTab">兑换扣减</view>
+  </view>
+
+  <view class="card">
+    <view class="search-row">
+      <input class="input" value="{{q}}" placeholder="输入账号名或昵称" bindinput="onSearchInput" />
+      <button class="btn-plain scan-btn" bindtap="onScan">扫码</button>
+      <button class="btn-primary search-btn" bindtap="onSearch" disabled="{{searching}}">搜索</button>
+    </view>
+    <view wx:if="{{results.length}}" class="results">
+      <view wx:for="{{results}}" wx:key="id" class="result" data-id="{{item.id}}" bindtap="pickMember">
+        <view>
+          <view>{{item.nickname}}</view>
+          <view class="muted">@{{item.accountName}} · 积分 {{item.points}} · 成长值 {{item.growth}}</view>
+        </view>
+        <text class="arrow">›</text>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{member}}" class="card member-info">
+    <view class="head">
+      <view>
+        <view class="nickname">{{member.nickname}}</view>
+        <view class="muted">@{{member.accountName}}</view>
+      </view>
+      <view class="balances">
+        <view>积分 {{member.points}}</view>
+        <view>成长值 {{member.growth}}</view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{tab === 'add' && member}}" class="card">
+    <view class="section-title">新增成长值</view>
+    <input class="input" type="number" value="{{growthDelta}}" placeholder="留空表示不增加" bindinput="onGrowthInput" />
+    <view class="section-title">新增积分</view>
+    <input class="input" type="number" value="{{pointsDelta}}" placeholder="留空表示不增加" bindinput="onPointsDeltaInput" />
+    <view class="section-title">原因（必填，写入审计）</view>
+    <textarea class="textarea" value="{{reason}}" maxlength="200" placeholder="例如：活动奖励、补发…" bindinput="onReasonInput"></textarea>
+    <button class="btn-primary submit" bindtap="onSubmitAdd" disabled="{{submitting}}">确认新增</button>
+  </view>
+
+  <view wx:if="{{tab === 'redeem' && member}}" class="card">
+    <view class="section-title">兑换积分（扣减）</view>
+    <input class="input" type="number" value="{{redeemPoints}}" placeholder="本次兑换消耗的积分" bindinput="onRedeemPointsInput" />
+    <view class="section-title">兑换内容（必填）</view>
+    <input class="input" value="{{item}}" maxlength="100" placeholder="例如：桌游 1 小时、饮品券…" bindinput="onItemInput" />
+    <view class="section-title">备注（选填）</view>
+    <input class="input" value="{{note}}" maxlength="200" placeholder="其他说明" bindinput="onNoteInput" />
+    <button class="btn-primary submit" bindtap="onSubmitRedeem" disabled="{{submitting}}">确认兑换</button>
+  </view>
+
+  <view wx:if="{{!member}}" class="empty">请先搜索并选择会员</view>
+</view>

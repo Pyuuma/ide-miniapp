@@ -1,0 +1,163 @@
+.page {
+  padding-bottom: 40rpx;
+}
+
+.member-card {
+  background: linear-gradient(135deg, #23262d, #3c4250);
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+}
+
+.member-top {
+  display: flex;
+  align-items: center;
+}
+
+.avatar {
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: 50%;
+  background: #d9dce3;
+}
+
+.avatar-placeholder {
+  position: relative;
+
+  &::after {
+    content: '会员';
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #8a8f99;
+    font-size: 22rpx;
+  }
+}
+
+.member-info {
+  flex: 1;
+  margin-left: 24rpx;
+}
+
+.nickname {
+  font-size: 36rpx;
+  font-weight: 600;
+}
+
+.account {
+  margin-top: 6rpx;
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 24rpx;
+}
+
+.level {
+  padding: 8rpx 20rpx;
+  border: 2rpx solid rgba(255, 255, 255, 0.5);
+  border-radius: 999rpx;
+  font-size: 24rpx;
+}
+
+.points {
+  margin-top: 40rpx;
+  font-size: 88rpx;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.points-label {
+  margin-top: 8rpx;
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 24rpx;
+}
+
+.growth-line {
+  margin-top: 8rpx;
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 24rpx;
+}
+
+.store {
+  margin-top: 32rpx;
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 22rpx;
+  text-align: right;
+}
+
+.code-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.code-title {
+  font-size: 26rpx;
+  color: #555;
+}
+
+.code-canvas {
+  width: 480rpx;
+  height: 480rpx;
+  margin: 24rpx 0 8rpx;
+}
+
+.code-tip {
+  color: #8a8f99;
+  font-size: 24rpx;
+}
+
+.refresh-btn {
+  margin-top: 20rpx;
+  width: 360rpx;
+}
+
+.code-fallback {
+  margin-top: 16rpx;
+  text-align: center;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.privacy-mask {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  padding: 48rpx;
+}
+
+.privacy-panel {
+  background: #fff;
+  border-radius: 24rpx;
+  padding: 40rpx 36rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+}
+
+.privacy-title {
+  font-size: 34rpx;
+  font-weight: 700;
+  text-align: center;
+}
+
+.privacy-desc {
+  color: #555;
+  font-size: 26rpx;
+  line-height: 1.7;
+}
+
+.privacy-link {
+  color: #576b95;
+  text-align: center;
+  text-decoration: underline;
+  font-size: 26rpx;
+}

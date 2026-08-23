@@ -1,0 +1,107 @@
+.page {
+  padding-bottom: 40rpx;
+}
+
+.summary {
+  text-align: center;
+}
+
+.summary-row {
+  display: flex;
+}
+
+.summary-item {
+  flex: 1;
+  text-align: center;
+}
+
+.points {
+  font-size: 88rpx;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.label {
+  margin-top: 12rpx;
+  color: #8a8f99;
+  font-size: 24rpx;
+}
+
+.level-line {
+  margin-top: 16rpx;
+  color: #8a8f99;
+  font-size: 24rpx;
+}
+
+.link {
+  color: #1a1a1a;
+  text-decoration: underline;
+}
+
+.filters {
+  display: flex;
+  margin: 0 24rpx;
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 8rpx;
+}
+
+.filter {
+  flex: 1;
+  text-align: center;
+  line-height: 2.4;
+  border-radius: 12rpx;
+  color: #555;
+
+  &.active {
+    background: #1a1a1a;
+    color: #fff;
+  }
+}
+
+.list {
+  padding: 0 28rpx;
+}
+
+.entry {
+  display: flex;
+  align-items: center;
+  padding: 24rpx 0;
+  border-bottom: 2rpx solid #f0f1f4;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.entry-main {
+  flex: 1;
+}
+
+.source {
+  font-size: 30rpx;
+}
+
+.note {
+  margin-top: 4rpx;
+  color: #8a8f99;
+  font-size: 24rpx;
+}
+
+.growth {
+  margin-top: 4rpx;
+  color: #1a7f37;
+  font-size: 24rpx;
+}
+
+.time {
+  margin-top: 4rpx;
+  color: #b0b4bd;
+  font-size: 22rpx;
+}
+
+.delta {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #1a7f37;
+}

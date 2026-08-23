@@ -1,0 +1,16 @@
+<view class="card">
+  <view class="title">欢迎加入会员</view>
+  <view class="desc">系统已为你生成一个随机账号名，它是你在店内的唯一标识，类似微信号。</view>
+
+  <view class="random-box">
+    <view class="random-label">系统生成</view>
+    <view class="random-name">@{{accountName}}</view>
+  </view>
+
+  <view class="desc">你可以在下方设置自己的账号名（仅此一次机会，设置后不可修改）：</view>
+  <input class="input" value="{{input}}" maxlength="20" placeholder="可留空，继续使用随机账号名" bindinput="onInput" />
+  <view class="muted rule">以字母开头，可含英文字母、数字、下划线、横线，长度 5–20 位</view>
+
+  <button class="btn-primary" bindtap="onConfirm" disabled="{{saving}}">进入小程序</button>
+  <view class="muted tip">留空点击进入，之后仍可在“我的”页面修改一次</view>
+</view>

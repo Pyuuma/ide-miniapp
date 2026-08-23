@@ -1,0 +1,52 @@
+.header {
+  text-align: center;
+}
+
+.title {
+  font-size: 44rpx;
+  font-weight: 700;
+}
+
+.menu {
+  padding: 0 28rpx;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 28rpx 0;
+  border-bottom: 2rpx solid #f0f1f4;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.menu-title {
+  font-size: 30rpx;
+  font-weight: 600;
+}
+
+.menu-desc {
+  margin-top: 6rpx;
+  color: #8a8f99;
+  font-size: 24rpx;
+}
+
+.arrow {
+  font-size: 44rpx;
+  color: #b0b4bd;
+}
+
+.badge {
+  min-width: 40rpx;
+  height: 40rpx;
+  border-radius: 20rpx;
+  background: #c0392b;
+  color: #fff;
+  text-align: center;
+  line-height: 40rpx;
+  font-size: 24rpx;
+  padding: 0 10rpx;
+}

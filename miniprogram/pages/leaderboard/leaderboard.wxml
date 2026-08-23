@@ -1,0 +1,32 @@
+<view class="page">
+  <view class="card">
+    <view class="section-title">成长值排行榜</view>
+    <view wx:if="{{rows.length}}" class="list">
+      <block wx:for="{{rows}}" wx:key="id">
+        <view wx:if="{{item.ellipsis}}" class="row ellipsis-row">…</view>
+        <view
+          wx:else
+          class="row {{item.isMe ? 'me' : ''}}"
+          id="{{item.isMe ? 'meRow' : ''}}"
+        >
+          <view class="rank {{index < 3 ? 'top' + index : ''}}">{{item.rank}}</view>
+          <view class="info">
+            <view class="name">
+              {{item.nickname}}<text wx:if="{{item.accountName}}" class="muted"> @{{item.accountName}}</text>
+              <text wx:if="{{item.isMe}}" class="me-tag">我</text>
+            </view>
+          </view>
+          <view class="growth">{{item.growth}}</view>
+        </view>
+      </block>
+    </view>
+    <view wx:else class="empty">暂无数据</view>
+  </view>
+
+  <view class="muted tip">排行榜按成长值排序，所有会员自动参与；匿名会员对其他用户隐藏昵称与账号名。</view>
+
+  <view wx:if="{{showMeBar && me}}" class="me-bar" bindtap="onTapMeBar">
+    <view class="bar-rank">我的排名：第 {{me.rank}} 名</view>
+    <view class="bar-sub">{{me.nickname}} · 成长值 {{me.growth}}</view>
+  </view>
+</view>

@@ -1,0 +1,28 @@
+<view class="page">
+  <view wx:if="{{items.length}}" class="card">
+    <view wx:for="{{items}}" wx:key="_id" class="item">
+      <view class="head">
+        <text class="platform">{{item.platformName}}</text>
+        <text class="status status-{{item.status}}">{{item.statusText}}{{item.specialText}}</text>
+      </view>
+      <view wx:if="{{item.text}}" class="text">{{item.text}}</view>
+      <view wx:if="{{item.link}}" class="link">{{item.link}}</view>
+      <view class="images">
+        <image
+          wx:for="{{item.screenshots}}"
+          wx:for-item="shot"
+          wx:key="*this"
+          class="shot"
+          src="{{shot}}"
+          mode="aspectFill"
+          data-urls="{{item.screenshots}}"
+          data-current="{{shot}}"
+          bindtap="previewImage"
+        ></image>
+      </view>
+      <view wx:if="{{item.rejectText}}" class="reject">拒绝原因：{{item.rejectText}}</view>
+      <view class="time">{{item.timeText}}</view>
+    </view>
+  </view>
+  <view wx:else class="empty">暂无申请记录</view>
+</view>

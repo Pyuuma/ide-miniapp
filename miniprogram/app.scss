@@ -1,0 +1,98 @@
+page {
+  background: #f5f6fa;
+  color: #1a1a1a;
+  font-size: 28rpx;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+view,
+text,
+button,
+input,
+textarea {
+  box-sizing: border-box;
+}
+
+.card {
+  margin: 24rpx;
+  padding: 28rpx;
+  background: #fff;
+  border-radius: 20rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.04);
+}
+
+.btn-primary {
+  background: #1a1a1a;
+  color: #fff;
+  border-radius: 14rpx;
+  font-size: 30rpx;
+  line-height: 2.6;
+
+  &::after {
+    border: none;
+  }
+}
+
+.btn-plain {
+  background: #fff;
+  color: #1a1a1a;
+  border: 2rpx solid #d9dce3;
+  border-radius: 14rpx;
+  font-size: 30rpx;
+  line-height: 2.5;
+
+  &::after {
+    border: none;
+  }
+}
+
+.muted {
+  color: #8a8f99;
+  font-size: 24rpx;
+}
+
+.field {
+  display: flex;
+  align-items: center;
+  padding: 22rpx 0;
+  border-bottom: 2rpx solid #f0f1f4;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  .label {
+    width: 150rpx;
+    color: #555;
+  }
+
+  .value {
+    flex: 1;
+    text-align: right;
+  }
+}
+
+.input,
+.textarea {
+  width: 100%;
+  background: #f5f6fa;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+}
+
+.input {
+  height: 88rpx;
+  padding: 0 20rpx;
+}
+
+.textarea {
+  height: 160rpx;
+  padding: 16rpx 20rpx;
+}
+
+.empty {
+  padding: 80rpx 0;
+  text-align: center;
+  color: #b0b4bd;
+}

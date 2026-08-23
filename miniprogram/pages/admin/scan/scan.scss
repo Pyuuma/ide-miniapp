@@ -1,0 +1,139 @@
+.tabs {
+  display: flex;
+  margin: 24rpx 24rpx 0;
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 8rpx;
+}
+
+.tab {
+  flex: 1;
+  text-align: center;
+  line-height: 2.4;
+  border-radius: 12rpx;
+  color: #555;
+
+  &.active {
+    background: #1a1a1a;
+    color: #fff;
+  }
+}
+
+.scan-card {
+  text-align: center;
+}
+
+.scan-btn {
+  width: 100%;
+}
+
+.search-row {
+  display: flex;
+  gap: 16rpx;
+}
+
+.search-btn {
+  width: 160rpx;
+  flex-shrink: 0;
+  font-size: 26rpx;
+}
+
+.result {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 22rpx 0;
+  border-bottom: 2rpx solid #f0f1f4;
+}
+
+.arrow {
+  font-size: 44rpx;
+  color: #b0b4bd;
+}
+
+.member-info {
+  .head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .nickname {
+    font-size: 34rpx;
+    font-weight: 600;
+  }
+
+  .level {
+    padding: 6rpx 18rpx;
+    border: 2rpx solid #d9dce3;
+    border-radius: 999rpx;
+    font-size: 24rpx;
+  }
+}
+
+.usage {
+  margin-top: 20rpx;
+  padding: 16rpx 20rpx;
+  background: #f6f7fb;
+  border-radius: 12rpx;
+  color: #555;
+  font-size: 26rpx;
+
+  &.over {
+    background: #fdeeee;
+    color: #c0392b;
+  }
+}
+
+.section-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  margin: 28rpx 0 16rpx;
+
+  &.warn {
+    color: #c0392b;
+  }
+}
+
+.tiers {
+  display: flex;
+  gap: 20rpx;
+}
+
+.tier {
+  flex: 1;
+  border: 2rpx solid #d9dce3;
+  border-radius: 14rpx;
+  padding: 20rpx;
+  text-align: center;
+
+  &.active {
+    border-color: #1a1a1a;
+    background: #f6f7fb;
+  }
+}
+
+.tier-name {
+  font-size: 30rpx;
+  font-weight: 600;
+}
+
+.tier-points {
+  margin-top: 8rpx;
+  color: #1a7f37;
+  font-size: 28rpx;
+}
+
+.tier-amount {
+  margin-top: 4rpx;
+  color: #8a8f99;
+  font-size: 22rpx;
+}
+
+.textarea {
+  height: 140rpx;
+}
+
+.submit {
+  margin-top: 32rpx;
+}

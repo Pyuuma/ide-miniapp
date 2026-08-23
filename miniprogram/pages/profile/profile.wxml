@@ -1,0 +1,66 @@
+<view class="page">
+  <view class="card profile-card">
+    <button class="avatar-btn" open-type="chooseAvatar" bind:chooseavatar="onChooseAvatar">
+      <image wx:if="{{member.avatar}}" class="avatar" src="{{member.avatar}}" mode="aspectFill"></image>
+      <view wx:else class="avatar avatar-placeholder">换头像</view>
+    </button>
+    <view class="name-line">
+      <view class="nickname">{{member.nickname}}</view>
+      <view class="account">@{{member.accountName}}</view>
+    </view>
+    <view wx:if="{{!member.accountNameChanged}}" class="rename-hint">
+      系统已生成随机账号名，你还有一次自定义机会
+      <text class="rename-link" bindtap="openRename">去设置</text>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="field">
+      <text class="label">账号名</text>
+      <text class="value">@{{member.accountName}}</text>
+    </view>
+    <view class="field">
+      <text class="label">成长值</text>
+      <text class="value">{{growth}}</text>
+    </view>
+    <view class="field">
+      <text class="label">可兑换积分</text>
+      <text class="value">{{points}}</text>
+    </view>
+    <view class="field switch-field">
+      <text class="label">排行榜匿名</text>
+      <switch checked="{{leaderboardAnon}}" color="#1a1a1a" bindchange="onAnonChange" />
+    </view>
+    <view class="muted anon-desc">必须参与成长值排行榜；开启后其他用户看不到你的昵称和账号名，你仍可看到自己。</view>
+  </view>
+
+  <view class="card">
+    <view class="field">
+      <text class="label">昵称</text>
+      <input class="value input" value="{{nickname}}" maxlength="20" placeholder="1–20 个字符" bindinput="onNicknameInput" />
+    </view>
+    <view class="field column">
+      <text class="label">签名</text>
+      <textarea class="textarea" value="{{signature}}" maxlength="50" placeholder="一句话介绍自己（可选，最多 50 字）" bindinput="onSignatureInput" />
+    </view>
+    <button class="btn-primary save-btn" bindtap="onSaveProfile" disabled="{{saving}}">保存资料</button>
+  </view>
+
+  <view class="card menu">
+    <view class="menu-item" bindtap="onTapLeaderboard">成长值排行榜</view>
+    <view class="menu-item" bindtap="onTapReview">评论加分</view>
+    <view class="menu-item" bindtap="onTapMyReviews">我的加分申请</view>
+    <view wx:if="{{isAdmin}}" class="menu-item" bindtap="onTapAdmin">管理端</view>
+    <view class="menu-item" bindtap="onTapPrivacy">隐私政策</view>
+  </view>
+
+  <view wx:if="{{renamePanel}}" class="mask" bindtap="closeRename">
+    <view class="panel" catchtap="noop">
+      <view class="panel-title">设置账号名（仅一次）</view>
+      <view class="muted panel-desc">以字母开头，可含字母、数字、下划线、横线，5–20 位；设置后不可修改。</view>
+      <input class="input" value="{{newAccountName}}" maxlength="20" placeholder="请输入新的账号名" bindinput="onRenameInput" />
+      <button class="btn-primary" bindtap="confirmRename" disabled="{{saving}}">确认设置</button>
+      <button class="btn-plain" bindtap="closeRename">取消</button>
+    </view>
+  </view>
+</view>

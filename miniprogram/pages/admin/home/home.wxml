@@ -1,0 +1,38 @@
+<view class="page">
+  <view class="card header">
+    <view class="title">管理端</view>
+    <view class="muted">管理员同时保留全部用户端功能，操作会写入审计记录</view>
+  </view>
+
+  <view class="card menu">
+    <view class="menu-item" bindtap="goScan">
+      <view>
+        <view class="menu-title">录入积分</view>
+        <view class="menu-desc">扫描会员码或搜索会员，录入消费与积分</view>
+      </view>
+      <text class="arrow">›</text>
+    </view>
+    <view class="menu-item" bindtap="goReview">
+      <view>
+        <view class="menu-title">评论审核</view>
+        <view class="menu-desc">审核小红书 / 大众点评加分申请</view>
+      </view>
+      <view class="badge" wx:if="{{pendingCount > 0}}">{{pendingCount}}</view>
+      <text class="arrow">›</text>
+    </view>
+    <view class="menu-item" bindtap="goAudit">
+      <view>
+        <view class="menu-title">审计记录</view>
+        <view class="menu-desc">查看积分变动与操作留痕、特别录入占比</view>
+      </view>
+      <text class="arrow">›</text>
+    </view>
+    <view class="menu-item" bindtap="goAdjust">
+      <view>
+        <view class="menu-title">积分管理</view>
+        <view class="menu-desc">手动新增成长值/积分，或用积分兑换优惠券、桌游等</view>
+      </view>
+      <text class="arrow">›</text>
+    </view>
+  </view>
+</view>

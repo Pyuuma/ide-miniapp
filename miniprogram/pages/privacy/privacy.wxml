@@ -1,0 +1,3 @@
+<view class="card">
+  <text class="content" user-select>{{text}}</text>
+</view>
