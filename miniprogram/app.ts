@@ -1,3 +1,5 @@
+import { CLOUD_ENV_ID } from './config'
+
 App<IAppOption>({
   globalData: {},
   onLaunch() {
@@ -6,7 +8,7 @@ App<IAppOption>({
       return
     }
     wx.cloud.init({
-      env: 'cloudbase-d0g3x3jvnb9c1a61e',
+      env: CLOUD_ENV_ID,
       traceUser: true,
     })
   },

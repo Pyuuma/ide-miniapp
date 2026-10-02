@@ -1,0 +1,99 @@
+.page {
+  padding-bottom: 180rpx;
+}
+
+.tabs {
+  display: flex;
+  margin: 24rpx 24rpx 0;
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 8rpx;
+}
+
+.tab {
+  flex: 1;
+  text-align: center;
+  line-height: 2.4;
+  border-radius: 12rpx;
+  color: #555;
+
+  &.active {
+    background: #1a1a1a;
+    color: #fff;
+  }
+}
+
+.list {
+  padding-bottom: 40rpx;
+}
+
+.event {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+}
+
+.cover {
+  width: 140rpx;
+  height: 140rpx;
+  border-radius: 16rpx;
+  background: #f0f1f4;
+  flex-shrink: 0;
+}
+
+.body {
+  flex: 1;
+  min-width: 0;
+}
+
+.title-line {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.title {
+  font-size: 32rpx;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tag {
+  flex-shrink: 0;
+  padding: 2rpx 12rpx;
+  border-radius: 999rpx;
+  background: #1a1a1a;
+  color: #fff;
+  font-size: 20rpx;
+}
+
+.meta {
+  margin-top: 8rpx;
+}
+
+.arrow {
+  font-size: 44rpx;
+  color: #b0b4bd;
+}
+
+.ended {
+  opacity: 0.65;
+}
+
+.empty-block {
+  padding: 120rpx 0 60rpx;
+  text-align: center;
+}
+
+.empty-text {
+  color: #b0b4bd;
+}
+
+.go-btn {
+  width: 280rpx;
+  margin: 32rpx auto 0;
+  font-size: 28rpx;
+  line-height: 2.4;
+}

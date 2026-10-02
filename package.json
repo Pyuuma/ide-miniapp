@@ -1,8 +1,10 @@
 {
-  "name": "miniprogram-ts-sass-quickstart",
-  "version": "1.0.0",
-  "description": "",
-  "scripts": {},
+  "name": "ide-miniapp",
+  "version": "1.1.0",
+  "description": "桌游店会员小程序（微信云开发）",
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
   "keywords": [],
   "author": "",
   "license": "",

@@ -8,6 +8,12 @@ const ACTION_LABELS: Record<string, string> = {
   account_rename: '账号名设置',
   manual_adjust: '手动调整',
   redeem_points: '积分兑换',
+  event_award: '赛事荣誉发放',
+  event_roster_add: '赛事补录',
+  event_roster_remove: '赛事移除',
+  event_save: '赛事保存',
+  event_delete: '赛事删除',
+  redemption_item_save: '商品保存',
 }
 
 const CHANGE_OPTIONS = [
@@ -15,6 +21,7 @@ const CHANGE_OPTIONS = [
   { id: 'points_increase', name: '积分增加' },
   { id: 'points_decrease', name: '积分扣减' },
   { id: 'growth_increase', name: '成长值增加' },
+  { id: 'honor_increase', name: '荣誉值增加' },
   { id: 'none', name: '无积分变动' },
 ]
 
@@ -68,19 +75,24 @@ Page({
         id: it._id,
         actionText: ACTION_LABELS[it.actionType] || it.actionType,
         actorText: it.actorNickname || it.actorId,
-        targetText: it.targetMemberNickname || it.targetMemberId,
+        targetText: it.targetMemberNickname || it.targetMemberId || '—',
         deltaText: it.delta > 0 ? `+${it.delta}` : it.delta === 0 ? '—' : String(it.delta),
-        changeText:
-          it.changeType.includes('points_increase') && it.changeType.includes('growth_increase')
-            ? '积分+成长值增加'
-            : it.changeType === 'points_increase'
-            ? '积分增加'
-            : it.changeType === 'points_decrease'
-            ? '积分扣减'
-            : it.changeType === 'growth_increase'
-            ? '成长值增加'
-            : '无变动',
+        changeText: (() => {
+          const ct = it.changeType
+          if (ct === 'points_decrease') return '积分扣减'
+          if (ct.includes('honor_increase') && ct.includes('points_increase') && ct.includes('growth_increase')) {
+            return '积分+成长值+荣誉值增加'
+          }
+          if (ct.includes('honor_increase') && ct.includes('growth_increase')) return '成长值+荣誉值增加'
+          if (ct.includes('honor_increase') && ct.includes('points_increase')) return '积分+荣誉值增加'
+          if (ct.includes('honor_increase')) return '荣誉值增加'
+          if (ct.includes('points_increase') && ct.includes('growth_increase')) return '积分+成长值增加'
+          if (ct.includes('points_increase')) return '积分增加'
+          if (ct.includes('growth_increase')) return '成长值增加'
+          return '无变动'
+        })(),
         growthText: it.growthDelta ? `成长值 +${it.growthDelta}` : '',
+        honorText: it.honorDelta ? `荣誉值 +${it.honorDelta}` : '',
         reason: it.reason || '',
         special: it.specialFlag ? '特别录入' : '',
         timeText: formatDateTime(it.createdAt),

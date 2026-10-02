@@ -1,0 +1,27 @@
+<view class="page">
+  <view class="tabs">
+    <view class="tab {{tab === 'all' ? 'active' : ''}}" data-tab="all" bindtap="switchTab">全部</view>
+    <view class="tab {{tab === 'draft' ? 'active' : ''}}" data-tab="draft" bindtap="switchTab">草稿</view>
+    <view class="tab {{tab === 'published' ? 'active' : ''}}" data-tab="published" bindtap="switchTab">已发布</view>
+    <view class="tab {{tab === 'ended' ? 'active' : ''}}" data-tab="ended" bindtap="switchTab">已结束</view>
+  </view>
+
+  <button class="btn-primary create" bindtap="onCreate">新建赛事</button>
+
+  <view wx:if="{{items.length}}" class="card">
+    <view wx:for="{{items}}" wx:key="id" class="item">
+      <view class="info">
+        <view class="title-line">
+          <text class="title">{{item.title}}</text>
+          <text class="tag">{{item.statusText}}</text>
+        </view>
+        <view class="muted">{{item.countText}}</view>
+      </view>
+      <view class="actions">
+        <button class="btn-plain small" data-id="{{item.id}}" bindtap="onEdit">编辑</button>
+        <button class="btn-primary small" data-id="{{item.id}}" bindtap="onRoster">名单</button>
+      </view>
+    </view>
+  </view>
+  <view wx:else class="empty">暂无赛事</view>
+</view>

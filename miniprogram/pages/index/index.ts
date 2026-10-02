@@ -1,6 +1,7 @@
 import { api, MemberInfo } from '../../utils/api'
 import { isSetupSkipped, setSession } from '../../utils/session'
 import { drawQrCode } from '../../utils/qr'
+import { syncTabBar } from '../../utils/tabbar'
 
 Page({
   data: {
@@ -19,6 +20,7 @@ Page({
   refreshing: false,
 
   onShow() {
+    syncTabBar(this)
     this.bootstrap()
   },
 
@@ -134,6 +136,10 @@ Page({
 
   onTapMyReviews() {
     wx.navigateTo({ url: '/pages/review-list/review-list' })
+  },
+
+  onTapMall() {
+    wx.navigateTo({ url: '/pages/mall/mall' })
   },
 
   onAgreePrivacy() {

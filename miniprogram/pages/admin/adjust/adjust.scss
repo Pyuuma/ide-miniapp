@@ -82,3 +82,32 @@
 .submit {
   margin-top: 32rpx;
 }
+
+.pick-row {
+  display: flex;
+  gap: 12rpx;
+  align-items: center;
+}
+
+.picker {
+  flex: 1;
+  height: 88rpx;
+  background: #f5f6fa;
+  border-radius: 12rpx;
+  line-height: 88rpx;
+  padding: 0 20rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  &.placeholder {
+    color: #b0b4bd;
+  }
+}
+
+.clear-btn {
+  font-size: 24rpx;
+  line-height: 2;
+  padding: 0 16rpx;
+  margin: 0;
+}

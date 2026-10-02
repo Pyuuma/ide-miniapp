@@ -1,4 +1,4 @@
-import { api, MemberInfo } from '../../../utils/api'
+import { api, MemberInfo, RedemptionItem } from '../../../utils/api'
 
 Page({
   data: {
@@ -9,11 +9,28 @@ Page({
     searching: false,
     growthDelta: '',
     pointsDelta: '',
+    honorDelta: '',
     reason: '',
     redeemPoints: '',
     item: '',
     note: '',
+    products: [] as RedemptionItem[],
+    selectedProduct: null as RedemptionItem | null,
+    selectedOption: null as { id: string; name: string; points: number } | null,
     submitting: false,
+  },
+
+  onLoad() {
+    this.loadProducts()
+  },
+
+  async loadProducts() {
+    try {
+      const res = await api.listAdminRedemptionItems()
+      this.setData({ products: res.items })
+    } catch (e: any) {
+      wx.showToast({ title: e.message || '商品加载失败', icon: 'none' })
+    }
   },
 
   switchTab(e: any) {
@@ -77,6 +94,10 @@ Page({
     this.setData({ pointsDelta: e.detail.value })
   },
 
+  onHonorDeltaInput(e: any) {
+    this.setData({ honorDelta: e.detail.value })
+  },
+
   onReasonInput(e: any) {
     this.setData({ reason: e.detail.value })
   },
@@ -100,8 +121,13 @@ Page({
     }
     const growthDelta = Number(this.data.growthDelta)
     const pointsDelta = Number(this.data.pointsDelta)
-    if ((!this.data.growthDelta || growthDelta <= 0) && (!this.data.pointsDelta || pointsDelta <= 0)) {
-      wx.showToast({ title: '请至少填写一项成长值或积分', icon: 'none' })
+    const honorDelta = Number(this.data.honorDelta)
+    if (
+      (!this.data.growthDelta || growthDelta <= 0) &&
+      (!this.data.pointsDelta || pointsDelta <= 0) &&
+      (!this.data.honorDelta || honorDelta <= 0)
+    ) {
+      wx.showToast({ title: '请至少填写一项成长值、积分或荣誉值', icon: 'none' })
       return
     }
     if (!this.data.reason.trim()) {
@@ -114,16 +140,45 @@ Page({
         memberId: this.data.member.id,
         growthDelta: this.data.growthDelta ? growthDelta : 0,
         pointsDelta: this.data.pointsDelta ? pointsDelta : 0,
+        honorDelta: this.data.honorDelta ? honorDelta : 0,
         reason: this.data.reason,
       })
       wx.showToast({ title: '已新增', icon: 'success' })
-      this.refreshMember(res.growthAfter, res.pointsAfter)
-      this.setData({ growthDelta: '', pointsDelta: '', reason: '' })
+      this.refreshMember(res.growthAfter, res.pointsAfter, res.honorAfter)
+      this.setData({ growthDelta: '', pointsDelta: '', honorDelta: '', reason: '' })
     } catch (e: any) {
       wx.showToast({ title: e.message || '操作失败', icon: 'none' })
     } finally {
       this.setData({ submitting: false })
     }
+  },
+
+  onProductChange(e: any) {
+    const index = Number(e.detail.value)
+    const product = this.data.products[index]
+    if (!product) return
+    this.setData({
+      selectedProduct: product,
+      selectedOption: null,
+      redeemPoints: '',
+      item: '',
+    })
+  },
+
+  onOptionChange(e: any) {
+    if (!this.data.selectedProduct) return
+    const index = Number(e.detail.value)
+    const option = this.data.selectedProduct.options[index]
+    if (!option) return
+    this.setData({
+      selectedOption: option,
+      redeemPoints: String(option.points),
+      item: `${this.data.selectedProduct.title} · ${option.name}`,
+    })
+  },
+
+  clearSelection() {
+    this.setData({ selectedProduct: null, selectedOption: null })
   },
 
   async onSubmitRedeem() {
@@ -142,14 +197,17 @@ Page({
     }
     this.setData({ submitting: true })
     try {
+      const useCatalog = !!(this.data.selectedProduct && this.data.selectedOption)
       const res = await api.redeemPoints({
         memberId: this.data.member.id,
         points,
         item: this.data.item,
         note: this.data.note,
+        itemId: useCatalog ? this.data.selectedProduct!._id : undefined,
+        optionId: useCatalog ? this.data.selectedOption!.id : undefined,
       })
       wx.showToast({ title: '兑换成功', icon: 'success' })
-      this.refreshMember(res.growthAfter, res.pointsAfter)
+      this.refreshMember(res.growthAfter, res.pointsAfter, this.data.member.honor || 0)
       this.setData({ redeemPoints: '', item: '', note: '' })
     } catch (e: any) {
       wx.showToast({ title: e.message || '操作失败', icon: 'none' })
@@ -158,9 +216,9 @@ Page({
     }
   },
 
-  refreshMember(growthAfter: number, pointsAfter: number) {
+  refreshMember(growthAfter: number, pointsAfter: number, honorAfter: number) {
     if (!this.data.member) return
-    const member = { ...this.data.member, growth: growthAfter, points: pointsAfter }
+    const member = { ...this.data.member, growth: growthAfter, points: pointsAfter, honor: honorAfter }
     this.setData({ member })
   },
 })

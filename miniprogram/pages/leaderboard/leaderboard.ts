@@ -3,8 +3,14 @@ import { getSession, setSession } from '../../utils/session'
 
 type DisplayRow = LeaderboardEntry & { ellipsis?: boolean }
 
+const TYPE_LABELS: Record<string, string> = {
+  growth: '成长值',
+  honor: '荣誉值',
+}
+
 Page({
   data: {
+    type: 'growth' as 'growth' | 'honor',
     rows: [] as DisplayRow[],
     me: null as LeaderboardEntry | null,
     topCount: 20,
@@ -12,6 +18,7 @@ Page({
     leaderboardAnon: false,
     showMeBar: false,
     loading: true,
+    typeLabel: TYPE_LABELS.growth,
   },
 
   observer: null as any,
@@ -28,11 +35,17 @@ Page({
     this.disconnectObserver()
   },
 
+  switchType(e: any) {
+    const type = e.currentTarget.dataset.type as 'growth' | 'honor'
+    if (type === this.data.type) return
+    this.setData({ type, typeLabel: TYPE_LABELS[type] }, () => this.load())
+  },
+
   async load() {
     this.disconnectObserver()
     this.setData({ loading: true, showMeBar: false })
     try {
-      const res: LeaderboardData = await api.leaderboard()
+      const res: LeaderboardData = await api.leaderboard(this.data.type)
       const rows = this.buildRows(res)
       this.setData(
         {
@@ -72,7 +85,7 @@ Page({
     const lastTopRank = top.length ? top[top.length - 1].rank : 0
     const firstAroundRank = around.length ? around[0].rank : res.me.rank
     if (firstAroundRank > lastTopRank + 1) {
-      rows.push({ id: 'ellipsis-before', rank: 0, nickname: '', accountName: '', growth: 0, anonymous: false, isMe: false, ellipsis: true })
+      rows.push({ id: 'ellipsis-before', rank: 0, nickname: '', accountName: '', growth: 0, honor: 0, value: 0, anonymous: false, isMe: false, ellipsis: true })
     }
     let lastShownRank = lastTopRank
     around.forEach(item => {
@@ -83,7 +96,7 @@ Page({
     })
     if (!around.length) lastShownRank = res.me.rank
     if (lastShownRank < res.total) {
-      rows.push({ id: 'ellipsis-after', rank: 0, nickname: '', accountName: '', growth: 0, anonymous: false, isMe: false, ellipsis: true })
+      rows.push({ id: 'ellipsis-after', rank: 0, nickname: '', accountName: '', growth: 0, honor: 0, value: 0, anonymous: false, isMe: false, ellipsis: true })
     }
     return rows
   },

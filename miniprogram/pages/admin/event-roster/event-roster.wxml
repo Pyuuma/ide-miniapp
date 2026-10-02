@@ -1,0 +1,56 @@
+<view class="page">
+  <view class="card header">
+    <view class="title">{{eventTitle}}</view>
+    <view class="muted">已报名 {{total}}{{capacityText}} 人</view>
+  </view>
+
+  <view class="card actions">
+    <button class="btn-plain" bindtap="openMemberPicker">添加会员</button>
+    <button class="btn-primary" bindtap="openAward">发放荣誉值</button>
+    <button class="btn-plain" bindtap="toggleSelectAll">{{selectAll ? '取消全选' : '全选'}}</button>
+  </view>
+
+  <view class="card">
+    <view wx:for="{{items}}" wx:key="registrationId" class="item" data-id="{{item.registrationId}}" bindtap="toggleSelect">
+      <view class="check {{item.selected ? 'checked' : ''}}">{{item.selected ? '✓' : ''}}</view>
+      <view class="info">
+        <view class="name">{{item.nickname}}<text class="muted" wx:if="{{item.accountName}}"> @{{item.accountName}}</text></view>
+        <view class="muted">荣誉值 {{item.honor}} · {{item.timeText}}</view>
+      </view>
+      <view class="remove" data-id="{{item.registrationId}}" catchtap="onRemove">移除</view>
+    </view>
+    <view wx:if="{{!items.length}}" class="empty">暂无报名</view>
+  </view>
+
+  <view wx:if="{{showMemberPicker}}" class="mask" bindtap="closeMemberPicker">
+    <view class="panel" catchtap="noop">
+      <view class="panel-title">补录会员</view>
+      <view class="search-row">
+        <input class="input" value="{{memberQ}}" placeholder="账号名或昵称" bindinput="onMemberSearchInput" />
+        <button class="btn-primary small" bindtap="onMemberSearch">搜索</button>
+      </view>
+      <view wx:for="{{memberResults}}" wx:key="id" class="result" data-id="{{item.id}}" bindtap="pickMember">
+        {{item.nickname}} @{{item.accountName}}
+      </view>
+      <view wx:if="{{!memberResults.length}}" class="muted">输入关键词后点击搜索</view>
+      <button class="btn-plain" bindtap="closeMemberPicker">取消</button>
+    </view>
+  </view>
+
+  <view wx:if="{{showAward}}" class="mask" bindtap="closeAward">
+    <view class="panel award-panel" catchtap="noop">
+      <view class="panel-title">发放荣誉值</view>
+      <view class="section-title">统一填写（将应用到全部所选会员）</view>
+      <input class="input" type="number" value="{{uniform}}" placeholder="荣誉值" bindinput="onUniformInput" />
+      <view class="section-title">逐人确认</view>
+      <view wx:for="{{awardItems}}" wx:key="memberId" class="award-row">
+        <text class="award-name">{{item.nickname}}</text>
+        <input class="input award-input" type="number" value="{{item.honor}}" placeholder="荣誉值" data-index="{{index}}" bindinput="onAwardItemInput" />
+      </view>
+      <view class="section-title">备注（可选）</view>
+      <input class="input" value="{{note}}" maxlength="200" placeholder="例如：冠军、亚军、参赛奖…" bindinput="onNoteInput" />
+      <button class="btn-primary" bindtap="submitAward" disabled="{{submitting}}">确认发放</button>
+      <button class="btn-plain" bindtap="closeAward">取消</button>
+    </view>
+  </view>
+</view>

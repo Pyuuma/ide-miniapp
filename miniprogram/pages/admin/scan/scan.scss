@@ -71,6 +71,27 @@
   }
 }
 
+.member-day {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-top: 20rpx;
+  padding: 16rpx 20rpx;
+  border-radius: 12rpx;
+  background: #f5f6fa;
+  color: #8a8f99;
+  font-size: 24rpx;
+
+  &.on {
+    background: #fff7e6;
+    color: #8a5a00;
+  }
+}
+
+.member-day-hint {
+  margin-top: 8rpx;
+}
+
 .usage {
   margin-top: 20rpx;
   padding: 16rpx 20rpx;

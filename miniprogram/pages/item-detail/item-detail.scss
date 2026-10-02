@@ -1,0 +1,51 @@
+.page {
+  padding-bottom: 40rpx;
+}
+
+.swiper {
+  height: 420rpx;
+  border-radius: 16rpx;
+  overflow: hidden;
+}
+
+.swiper-img {
+  width: 100%;
+  height: 420rpx;
+  border-radius: 16rpx;
+  background: #f0f1f4;
+}
+
+.title {
+  margin-top: 20rpx;
+  font-size: 38rpx;
+  font-weight: 700;
+}
+
+.section-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  margin-bottom: 12rpx;
+}
+
+.option {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 22rpx 0;
+  border-bottom: 2rpx solid #f0f1f4;
+  font-size: 28rpx;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.points {
+  color: #1a1a1a;
+  font-weight: 600;
+}
+
+.markdown {
+  font-size: 28rpx;
+  line-height: 1.7;
+}

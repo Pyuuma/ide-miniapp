@@ -1,0 +1,28 @@
+<view class="page">
+  <view class="card summary">
+    <view class="points">{{points}}</view>
+    <view class="label">我的可兑换积分</view>
+    <view class="muted">选中兑换选项后请联系工作人员兑换</view>
+  </view>
+
+  <view wx:if="{{items.length}}" class="list">
+    <view
+      wx:for="{{items}}"
+      wx:key="id"
+      class="card item"
+      data-id="{{item.id}}"
+      bindtap="onTapItem"
+    >
+      <image wx:if="{{item.cover}}" class="cover" src="{{item.cover}}" mode="aspectFill"></image>
+      <view class="body">
+        <view class="title">{{item.title}}</view>
+        <view wx:for="{{item.options}}" wx:key="id" class="option">
+          <text>{{item.name}}</text>
+          <text class="points">{{item.points}} 积分</text>
+        </view>
+      </view>
+      <text class="arrow">›</text>
+    </view>
+  </view>
+  <view wx:else class="empty">暂无兑换商品</view>
+</view>

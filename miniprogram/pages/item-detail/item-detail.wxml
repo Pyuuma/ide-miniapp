@@ -1,0 +1,33 @@
+<view class="page">
+  <block wx:if="{{item}}">
+    <view class="card">
+      <swiper wx:if="{{item.images.length > 1}}" class="swiper" indicator-dots circular>
+        <swiper-item wx:for="{{item.images}}" wx:key="*this">
+          <image class="swiper-img" src="{{item}}" mode="aspectFill" data-src="{{item}}" bindtap="onPreviewImage"></image>
+        </swiper-item>
+      </swiper>
+      <image wx:else class="swiper-img" src="{{item.images[0]}}" mode="aspectFill" data-src="{{item.images[0]}}" bindtap="onPreviewImage"></image>
+      <view class="title">{{item.title}}</view>
+    </view>
+
+    <view class="card">
+      <view class="section-title">兑换选项</view>
+      <view
+        wx:for="{{item.options}}"
+        wx:key="id"
+        class="option"
+        data-index="{{index}}"
+        bindtap="onTapOption"
+      >
+        <text>{{item.name}}</text>
+        <text class="points">{{item.points}} 积分</text>
+      </view>
+      <view class="muted">不提供线上兑换，请联系工作人员完成兑换</view>
+    </view>
+
+    <view class="card">
+      <view class="section-title">商品说明</view>
+      <rich-text class="markdown" nodes="{{html}}"></rich-text>
+    </view>
+  </block>
+</view>

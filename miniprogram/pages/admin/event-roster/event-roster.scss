@@ -1,0 +1,138 @@
+.header {
+  text-align: center;
+}
+
+.title {
+  font-size: 38rpx;
+  font-weight: 700;
+}
+
+.actions {
+  display: flex;
+  gap: 16rpx;
+}
+
+.actions button {
+  flex: 1;
+  font-size: 26rpx;
+  line-height: 2.2;
+  margin: 0;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  padding: 22rpx 0;
+  border-bottom: 2rpx solid #f0f1f4;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.check {
+  width: 44rpx;
+  height: 44rpx;
+  border-radius: 50%;
+  border: 2rpx solid #d9dce3;
+  margin-right: 20rpx;
+  text-align: center;
+  line-height: 40rpx;
+  font-size: 28rpx;
+  color: #fff;
+
+  &.checked {
+    background: #1a1a1a;
+    border-color: #1a1a1a;
+  }
+}
+
+.info {
+  flex: 1;
+  min-width: 0;
+}
+
+.name {
+  font-size: 30rpx;
+}
+
+.remove {
+  padding: 8rpx 16rpx;
+  border-radius: 10rpx;
+  color: #c0392b;
+  border: 2rpx solid #c0392b;
+  font-size: 24rpx;
+}
+
+.mask {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.panel {
+  width: 640rpx;
+  max-height: 80vh;
+  overflow-y: auto;
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 32rpx;
+}
+
+.panel-title {
+  font-size: 34rpx;
+  font-weight: 700;
+  margin-bottom: 20rpx;
+}
+
+.search-row {
+  display: flex;
+  gap: 16rpx;
+  margin-bottom: 16rpx;
+}
+
+.small {
+  width: 140rpx;
+  font-size: 24rpx;
+  line-height: 2.2;
+  margin: 0;
+}
+
+.result {
+  padding: 20rpx 0;
+  border-bottom: 2rpx solid #f0f1f4;
+}
+
+.section-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  margin: 24rpx 0 12rpx;
+}
+
+.award-row {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-bottom: 12rpx;
+}
+
+.award-name {
+  width: 220rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.award-input {
+  flex: 1;
+  height: 72rpx;
+}
+
+.panel .btn-primary,
+.panel .btn-plain {
+  margin-top: 16rpx;
+}

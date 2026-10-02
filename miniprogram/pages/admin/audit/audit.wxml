@@ -68,6 +68,7 @@
         操作人：{{item.actorText}} · {{item.changeText}}
         <text wx:if="{{item.deltaText !== '—'}}">（{{item.deltaText}}</text>
         <text wx:if="{{item.growthText}}"> · {{item.growthText}}</text>
+        <text wx:if="{{item.honorText}}"> · {{item.honorText}}</text>
         <text wx:if="{{item.deltaText !== '—'}}">）</text>
       </view>
       <view wx:if="{{item.reason}}" class="reason">原因：{{item.reason}}</view>

@@ -1,0 +1,62 @@
+.summary {
+  text-align: center;
+}
+
+.points {
+  font-size: 80rpx;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.label {
+  margin-top: 8rpx;
+  color: #555;
+  font-size: 26rpx;
+}
+
+.list {
+  padding-bottom: 40rpx;
+}
+
+.item {
+  display: flex;
+  align-items: flex-start;
+  gap: 20rpx;
+}
+
+.cover {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 16rpx;
+  background: #f0f1f4;
+  flex-shrink: 0;
+}
+
+.body {
+  flex: 1;
+  min-width: 0;
+}
+
+.title {
+  font-size: 32rpx;
+  font-weight: 600;
+}
+
+.option {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8rpx;
+  font-size: 26rpx;
+  color: #555;
+}
+
+.points {
+  color: #1a1a1a;
+  font-weight: 600;
+}
+
+.arrow {
+  font-size: 44rpx;
+  color: #b0b4bd;
+  align-self: center;
+}

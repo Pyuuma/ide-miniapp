@@ -1,0 +1,43 @@
+<view class="page">
+  <block wx:if="{{event}}">
+    <view class="card">
+      <swiper wx:if="{{event.images.length > 1}}" class="swiper" indicator-dots circular>
+        <swiper-item wx:for="{{event.images}}" wx:key="*this">
+          <image class="swiper-img" src="{{item}}" mode="aspectFill" data-src="{{item}}" bindtap="onPreviewImage"></image>
+        </swiper-item>
+      </swiper>
+      <image wx:else class="swiper-img" src="{{event.images[0]}}" mode="aspectFill" data-src="{{event.images[0]}}" bindtap="onPreviewImage"></image>
+      <view class="title">{{event.title}}</view>
+      <view class="muted meta">报名时间：{{registerWindowText}} · {{capacityText}}</view>
+    </view>
+
+    <view class="card">
+      <view class="section-title">赛事说明</view>
+      <rich-text class="markdown" nodes="{{html}}"></rich-text>
+    </view>
+
+    <view wx:if="{{event.status === 'ended'}}" class="empty">该赛事已结束</view>
+    <button
+      wx:elif="{{myRegistrationId}}"
+      class="btn-plain submit"
+      bindtap="onCancel"
+      disabled="{{submitting}}"
+    >取消报名</button>
+    <button
+      wx:elif="{{registerState === 'not_started'}}"
+      class="btn-plain submit"
+      disabled
+    >报名未开始</button>
+    <button
+      wx:elif="{{registerState === 'closed'}}"
+      class="btn-plain submit"
+      disabled
+    >报名已截止</button>
+    <button
+      wx:else
+      class="btn-primary submit"
+      bindtap="onRegister"
+      disabled="{{submitting}}"
+    >立即报名</button>
+  </block>
+</view>

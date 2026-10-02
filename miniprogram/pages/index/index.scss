@@ -1,5 +1,26 @@
 .page {
-  padding-bottom: 40rpx;
+  padding-bottom: 180rpx;
+}
+
+.entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.entry-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.entry-title {
+  font-size: 30rpx;
+  font-weight: 600;
+}
+
+.entry-arrow {
+  font-size: 44rpx;
+  color: #b0b4bd;
 }
 
 .member-card {

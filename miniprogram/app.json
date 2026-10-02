@@ -7,12 +7,21 @@
     "pages/review-submit/review-submit",
     "pages/review-list/review-list",
     "pages/leaderboard/leaderboard",
+    "pages/events/events",
+    "pages/event-detail/event-detail",
+    "pages/mall/mall",
+    "pages/item-detail/item-detail",
     "pages/privacy/privacy",
     "pages/admin/home/home",
     "pages/admin/scan/scan",
     "pages/admin/review/review",
     "pages/admin/audit/audit",
-    "pages/admin/adjust/adjust"
+    "pages/admin/adjust/adjust",
+    "pages/admin/event-list/event-list",
+    "pages/admin/event-edit/event-edit",
+    "pages/admin/event-roster/event-roster",
+    "pages/admin/item-list/item-list",
+    "pages/admin/item-edit/item-edit"
   ],
   "window": {
     "navigationBarTextStyle": "black",
@@ -21,6 +30,7 @@
     "backgroundColor": "#f5f6fa"
   },
   "tabBar": {
+    "custom": true,
     "color": "#8a8f99",
     "selectedColor": "#1a1a1a",
     "backgroundColor": "#ffffff",
@@ -33,6 +43,10 @@
       {
         "pagePath": "pages/points/points",
         "text": "积分"
+      },
+      {
+        "pagePath": "pages/events/events",
+        "text": "活动"
       },
       {
         "pagePath": "pages/profile/profile",

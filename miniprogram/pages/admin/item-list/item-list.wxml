@@ -1,0 +1,15 @@
+<view class="page">
+  <button class="btn-primary create" bindtap="onCreate">新建商品</button>
+
+  <view wx:if="{{items.length}}" class="card">
+    <view wx:for="{{items}}" wx:key="id" class="item" data-id="{{item.id}}" bindtap="onEdit">
+      <image wx:if="{{item.cover}}" class="cover" src="{{item.cover}}" mode="aspectFill"></image>
+      <view class="info">
+        <view class="title">{{item.title}}</view>
+        <view class="muted">{{item.statusText}} · {{item.optionText}}</view>
+      </view>
+      <text class="arrow">›</text>
+    </view>
+  </view>
+  <view wx:else class="empty">暂无商品</view>
+</view>

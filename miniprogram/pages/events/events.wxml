@@ -1,0 +1,55 @@
+<view class="page">
+  <view class="tabs">
+    <view class="tab {{tab === 'all' ? 'active' : ''}}" data-tab="all" bindtap="switchSegment">全部赛事</view>
+    <view class="tab {{tab === 'mine' ? 'active' : ''}}" data-tab="mine" bindtap="switchSegment">我的报名</view>
+  </view>
+
+  <block wx:if="{{tab === 'all'}}">
+    <view wx:if="{{items.length}}" class="list">
+      <view
+        wx:for="{{items}}"
+        wx:key="id"
+        class="card event {{item.ended ? 'ended' : ''}}"
+        data-id="{{item.id}}"
+        bindtap="onTapItem"
+      >
+        <image wx:if="{{item.cover}}" class="cover" src="{{item.cover}}" mode="aspectFill"></image>
+        <view class="body">
+          <view class="title-line">
+            <text class="title">{{item.title}}</text>
+            <text wx:if="{{item.statusText}}" class="tag">{{item.statusText}}</text>
+          </view>
+          <view class="muted meta">{{item.windowText}} · {{item.countText}}</view>
+        </view>
+        <text class="arrow">›</text>
+      </view>
+    </view>
+    <view wx:else class="empty">暂无赛事</view>
+  </block>
+
+  <block wx:else>
+    <view wx:if="{{myItems.length}}" class="list">
+      <view
+        wx:for="{{myItems}}"
+        wx:key="registrationId"
+        class="card event"
+        data-id="{{item.eventId}}"
+        bindtap="onTapItem"
+      >
+        <image wx:if="{{item.cover}}" class="cover" src="{{item.cover}}" mode="aspectFill"></image>
+        <view class="body">
+          <view class="title-line">
+            <text class="title">{{item.title}}</text>
+            <text class="tag">{{item.statusText}}</text>
+          </view>
+          <view class="muted meta">{{item.deadlineText}} · {{item.countText}}</view>
+        </view>
+        <text class="arrow">›</text>
+      </view>
+    </view>
+    <view wx:else class="empty-block">
+      <view class="empty-text">还没有报名任何赛事</view>
+      <button class="btn-plain go-btn" bindtap="goAll">去看看赛事</button>
+    </view>
+  </block>
+</view>

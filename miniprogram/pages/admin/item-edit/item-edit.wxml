@@ -1,0 +1,58 @@
+<view class="page">
+  <view class="card">
+    <view class="section-title">商品标题</view>
+    <input class="input" value="{{title}}" maxlength="50" placeholder="商品名称" bindinput="onTitleInput" />
+  </view>
+
+  <view class="card">
+    <view class="section-title">商品图片（1–9 张）</view>
+    <view class="images">
+      <view wx:for="{{images}}" wx:key="*this" class="image-item">
+        <image class="preview" src="{{item}}" mode="aspectFill"></image>
+        <view class="remove" data-index="{{index}}" catchtap="removeImage">×</view>
+      </view>
+      <view class="add-btn" bindtap="chooseImages">＋</view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">上下架与排序</view>
+    <view class="row">
+      <text class="label">上架</text>
+      <switch checked="{{status === 'on'}}" color="#1a1a1a" bindchange="onStatusChange" />
+    </view>
+    <view class="row">
+      <text class="label">排序</text>
+      <input class="input sort-input" type="number" value="{{sort}}" placeholder="数字越小越靠前" bindinput="onSortInput" />
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">兑换选项（每个选项可设置不同积分）</view>
+    <view wx:for="{{options}}" wx:key="key" class="option-row">
+      <input class="input opt-name" value="{{item.name}}" placeholder="选项名称" data-index="{{index}}" bindinput="onOptionNameInput" />
+      <input class="input opt-points" type="number" value="{{item.points}}" placeholder="积分" data-index="{{index}}" bindinput="onOptionPointsInput" />
+      <view class="opt-remove" data-index="{{index}}" catchtap="removeOption">×</view>
+    </view>
+    <button class="btn-plain add-option" bindtap="addOption">＋ 添加选项</button>
+  </view>
+
+  <view class="card">
+    <view class="section-title">商品说明（Markdown）</view>
+    <view class="mode-tabs">
+      <view class="mode-tab {{mode === 'edit' ? 'active' : ''}}" data-mode="edit" bindtap="switchMode">编辑</view>
+      <view class="mode-tab {{mode === 'preview' ? 'active' : ''}}" data-mode="preview" bindtap="switchMode">预览</view>
+    </view>
+    <textarea
+      wx:if="{{mode === 'edit'}}"
+      class="textarea markdown-input"
+      value="{{contentMarkdown}}"
+      maxlength="10000"
+      placeholder="支持 Markdown：标题、加粗、列表、代码块、图片等"
+      bindinput="onMarkdownInput"
+    ></textarea>
+    <rich-text wx:else class="preview" nodes="{{previewHtml}}"></rich-text>
+  </view>
+
+  <button class="btn-primary submit" bindtap="onSave" disabled="{{saving}}">保存</button>
+</view>

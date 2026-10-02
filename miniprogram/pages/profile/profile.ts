@@ -1,6 +1,7 @@
 import { api } from '../../utils/api'
 import { getSession, setSession, updateMember } from '../../utils/session'
 import { uploadImage } from '../../utils/upload'
+import { syncTabBar } from '../../utils/tabbar'
 
 const ACCOUNT_NAME_RE = /^[A-Za-z][A-Za-z0-9_-]{4,19}$/
 
@@ -10,6 +11,7 @@ Page({
     isAdmin: false,
     points: 0,
     growth: 0,
+    honor: 0,
     leaderboardAnon: false,
     nickname: '',
     signature: '',
@@ -19,6 +21,7 @@ Page({
   },
 
   onShow() {
+    syncTabBar(this)
     const session = getSession()
     if (!session) {
       wx.reLaunch({ url: '/pages/index/index' })
@@ -29,6 +32,7 @@ Page({
       isAdmin: session.isAdmin,
       points: session.member.points || 0,
       growth: session.member.growth || 0,
+      honor: session.member.honor || 0,
       leaderboardAnon: !!session.member.leaderboardAnon,
       nickname: session.member.nickname,
       signature: session.member.signature,
@@ -139,6 +143,11 @@ Page({
 
   onTapLeaderboard() {
     wx.navigateTo({ url: '/pages/leaderboard/leaderboard' })
+  },
+
+  onTapMyEvents() {
+    wx.setStorageSync('events_open_tab', 'mine')
+    wx.switchTab({ url: '/pages/events/events' })
   },
 
   async onAnonChange(e: any) {

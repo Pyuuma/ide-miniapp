@@ -24,6 +24,10 @@
       <text class="value">{{growth}}</text>
     </view>
     <view class="field">
+      <text class="label">荣誉值</text>
+      <text class="value">{{honor}}</text>
+    </view>
+    <view class="field">
       <text class="label">可兑换积分</text>
       <text class="value">{{points}}</text>
     </view>
@@ -31,7 +35,7 @@
       <text class="label">排行榜匿名</text>
       <switch checked="{{leaderboardAnon}}" color="#1a1a1a" bindchange="onAnonChange" />
     </view>
-    <view class="muted anon-desc">必须参与成长值排行榜；开启后其他用户看不到你的昵称和账号名，你仍可看到自己。</view>
+    <view class="muted anon-desc">成长值/荣誉值排行榜共用此设置；开启后其他用户看不到你的昵称和账号名，你仍可看到自己。</view>
   </view>
 
   <view class="card">
@@ -47,9 +51,10 @@
   </view>
 
   <view class="card menu">
-    <view class="menu-item" bindtap="onTapLeaderboard">成长值排行榜</view>
+    <view class="menu-item" bindtap="onTapLeaderboard">排行榜</view>
     <view class="menu-item" bindtap="onTapReview">评论加分</view>
     <view class="menu-item" bindtap="onTapMyReviews">我的加分申请</view>
+    <view class="menu-item" bindtap="onTapMyEvents">我的赛事报名</view>
     <view wx:if="{{isAdmin}}" class="menu-item" bindtap="onTapAdmin">管理端</view>
     <view class="menu-item" bindtap="onTapPrivacy">隐私政策</view>
   </view>

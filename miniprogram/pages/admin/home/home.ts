@@ -46,4 +46,12 @@ Page({
   goAdjust() {
     wx.navigateTo({ url: '/pages/admin/adjust/adjust' })
   },
+
+  goEvents() {
+    wx.navigateTo({ url: '/pages/admin/event-list/event-list' })
+  },
+
+  goItems() {
+    wx.navigateTo({ url: '/pages/admin/item-list/item-list' })
+  },
 })

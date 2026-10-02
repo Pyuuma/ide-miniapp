@@ -14,7 +14,7 @@
       <view wx:for="{{results}}" wx:key="id" class="result" data-id="{{item.id}}" bindtap="pickMember">
         <view>
           <view>{{item.nickname}}</view>
-          <view class="muted">@{{item.accountName}} · 积分 {{item.points}} · 成长值 {{item.growth}}</view>
+          <view class="muted">@{{item.accountName}} · 积分 {{item.points}} · 成长值 {{item.growth}} · 荣誉值 {{item.honor}}</view>
         </view>
         <text class="arrow">›</text>
       </view>
@@ -30,6 +30,7 @@
       <view class="balances">
         <view>积分 {{member.points}}</view>
         <view>成长值 {{member.growth}}</view>
+        <view>荣誉值 {{member.honor}}</view>
       </view>
     </view>
   </view>
@@ -39,16 +40,30 @@
     <input class="input" type="number" value="{{growthDelta}}" placeholder="留空表示不增加" bindinput="onGrowthInput" />
     <view class="section-title">新增积分</view>
     <input class="input" type="number" value="{{pointsDelta}}" placeholder="留空表示不增加" bindinput="onPointsDeltaInput" />
+    <view class="section-title">新增荣誉值</view>
+    <input class="input" type="number" value="{{honorDelta}}" placeholder="留空表示不增加" bindinput="onHonorDeltaInput" />
     <view class="section-title">原因（必填，写入审计）</view>
     <textarea class="textarea" value="{{reason}}" maxlength="200" placeholder="例如：活动奖励、补发…" bindinput="onReasonInput"></textarea>
     <button class="btn-primary submit" bindtap="onSubmitAdd" disabled="{{submitting}}">确认新增</button>
   </view>
 
   <view wx:if="{{tab === 'redeem' && member}}" class="card">
+    <view class="section-title">从积分商城选择（可选）</view>
+    <view class="pick-row">
+      <picker range="{{products}}" range-key="title" bindchange="onProductChange">
+        <view class="picker {{selectedProduct ? '' : 'placeholder'}}">{{selectedProduct ? selectedProduct.title : '选择商品'}}</view>
+      </picker>
+      <picker wx:if="{{selectedProduct}}" range="{{selectedProduct.options}}" range-key="name" bindchange="onOptionChange">
+        <view class="picker {{selectedOption ? '' : 'placeholder'}}">{{selectedOption ? selectedOption.name : '选择选项'}}</view>
+      </picker>
+      <button wx:if="{{selectedProduct}}" class="btn-plain clear-btn" bindtap="clearSelection">清除</button>
+    </view>
+    <view wx:if="{{selectedProduct && selectedOption}}" class="muted">已带出 {{selectedOption.points}} 积分与商品名备注，可继续修改</view>
+
     <view class="section-title">兑换积分（扣减）</view>
     <input class="input" type="number" value="{{redeemPoints}}" placeholder="本次兑换消耗的积分" bindinput="onRedeemPointsInput" />
     <view class="section-title">兑换内容（必填）</view>
-    <input class="input" value="{{item}}" maxlength="100" placeholder="例如：桌游 1 小时、饮品券…" bindinput="onItemInput" />
+    <input class="input" value="{{item}}" maxlength="100" placeholder="选择商品后自动带出，也可手动填写" bindinput="onItemInput" />
     <view class="section-title">备注（选填）</view>
     <input class="input" value="{{note}}" maxlength="200" placeholder="其他说明" bindinput="onNoteInput" />
     <button class="btn-primary submit" bindtap="onSubmitRedeem" disabled="{{submitting}}">确认兑换</button>

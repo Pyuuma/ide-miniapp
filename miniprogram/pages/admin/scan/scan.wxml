@@ -56,6 +56,14 @@
         </view>
       </view>
 
+      <checkbox-group wx:if="{{memberDayEnabled}}" bindchange="onMemberDayChange">
+        <label class="member-day {{applyMemberDayBonus ? 'on' : ''}}">
+          <checkbox value="1" checked="{{applyMemberDayBonus}}" color="#1a1a1a" />
+          <text>本次按{{memberDayLabel}}额外 +{{memberDayPoints}} 分</text>
+        </label>
+      </checkbox-group>
+      <view wx:if="{{memberDayDefault}}" class="muted member-day-hint">今天是{{memberDayLabel}}，已默认勾选，可取消</view>
+
       <view class="section-title">消费金额（可选）</view>
       <input class="input" type="digit" value="{{amount}}" placeholder="默认金额已预填" bindinput="onAmountInput" />
 
@@ -67,7 +75,7 @@
         <textarea class="textarea" value="{{specialReason}}" maxlength="200" placeholder="例如：会员临时加钟、系统补录…" bindinput="onSpecialReasonInput"></textarea>
       </block>
 
-      <button class="btn-primary submit" bindtap="onSubmit" disabled="{{submitting}}">确认录入 +{{selectedTier ? selectedTier.points : 0}} 分</button>
+      <button class="btn-primary submit" bindtap="onSubmit" disabled="{{submitting}}">确认录入 +{{selectedTier ? selectedTier.points + (applyMemberDayBonus ? memberDayPoints : 0) : 0}} 分</button>
     </view>
   </block>
 </view>

@@ -18,17 +18,31 @@ Page({
     results: [] as MemberInfo[],
     searching: false,
     submitting: false,
+    memberDayEnabled: false,
+    memberDayLabel: '会员日',
+    memberDayPoints: 0,
+    memberDayDefault: false,
+    applyMemberDayBonus: false,
   },
 
   async onLoad() {
     try {
       const config: StoreConfig = await api.getConfig()
       const tiers = config.pointTiers
+      const rule = config.memberDayBonus
+      const memberDayEnabled = !!(rule && rule.enabled)
+      const weekdays = (rule && rule.weekdays) || []
+      const isMemberDay = memberDayEnabled && weekdays.indexOf(new Date().getDay()) >= 0
       this.setData({
         tiers,
         selectedTier: tiers.length ? tiers[0] : null,
         selectedTierId: tiers.length ? tiers[0].id : '',
         amount: tiers.length ? String(tiers[0].defaultAmount) : '',
+        memberDayEnabled,
+        memberDayLabel: (rule && rule.label) || '会员日',
+        memberDayPoints: memberDayEnabled ? Math.max(0, Math.floor((rule && rule.points) || 0)) : 0,
+        memberDayDefault: isMemberDay,
+        applyMemberDayBonus: isMemberDay,
       })
     } catch (e: any) {
       wx.showToast({ title: e.message || '配置加载失败', icon: 'none' })
@@ -160,6 +174,7 @@ Page({
         amount,
         note: this.data.note,
         specialReason: this.data.specialReason,
+        applyMemberDayBonus: this.data.applyMemberDayBonus,
       })
       wx.showToast({ title: '录入成功', icon: 'success' })
       // 成功后回到扫码/搜索初始界面，避免连点重复录入
@@ -186,7 +201,13 @@ Page({
       note: '',
       specialReason: '',
       showSpecialReason: false,
+      applyMemberDayBonus: this.data.memberDayDefault,
     })
+  },
+
+  onMemberDayChange(e: any) {
+    const values: string[] = (e.detail && e.detail.value) || []
+    this.setData({ applyMemberDayBonus: values.indexOf('1') >= 0 })
   },
 
   formatTime(t: any) {

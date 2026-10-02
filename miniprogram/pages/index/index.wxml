@@ -11,29 +11,36 @@
     </view>
     <view class="points">{{member.points}}</view>
     <view class="points-label">可兑换积分</view>
-    <view class="growth-line">成长值 {{member.growth || 0}} · {{levelName}}</view>
+    <view class="growth-line">成长值 {{member.growth || 0}} · 荣誉值 {{member.honor || 0}} · {{levelName}}</view>
     <view class="store">{{storeName}}</view>
   </view>
 
   <view class="card code-card">
-    <view class="code-title">会员码 · 60 秒自动刷新</view>
+    <view class="code-title">会员码·{{countdown}}秒后自动刷新</view>
     <canvas wx:if="{{token}}" type="2d" id="memberCode" class="code-canvas"></canvas>
     <view wx:else class="empty">正在生成…</view>
-    <view class="code-tip">剩余 {{countdown}} 秒</view>
     <button class="btn-plain refresh-btn" bindtap="refreshCode">立即刷新</button>
     <view class="muted code-fallback">离线无法刷新时，请告知店员账号名：@{{member.accountName}}</view>
   </view>
 
   <view class="card actions">
-    <button class="btn-plain" bindtap="onTapReview">评论加分</button>
+    <button class="btn-primary" bindtap="onTapReview">评论加分</button>
     <button class="btn-plain" bindtap="onTapMyReviews">我的加分申请</button>
-    <button wx:if="{{isAdmin}}" class="btn-primary" bindtap="onTapAdmin">管理端</button>
+    <button wx:if="{{isAdmin}}" class="btn-plain" bindtap="onTapAdmin">管理端</button>
+  </view>
+
+  <view class="card entry" bindtap="onTapMall">
+    <view class="entry-main">
+      <view class="entry-title">积分商城</view>
+      <view class="muted">用积分兑换桌游、优惠券等，联系工作人员即可兑换</view>
+    </view>
+    <text class="entry-arrow">›</text>
   </view>
 
   <view wx:if="{{showPrivacy}}" class="privacy-mask">
     <view class="privacy-panel">
       <view class="privacy-title">隐私政策提示</view>
-      <view class="privacy-desc">为向你提供会员积分服务，我们需要收集并处理你的微信身份、昵称、头像、积分与消费记录。请阅读并同意《隐私政策》后继续使用。</view>
+      <view class="privacy-desc">为向你提供会员积分、赛事报名与兑换服务，我们需要收集并处理你的微信身份、昵称、头像、积分、荣誉值与赛事报名信息。请阅读并同意《隐私政策》后继续使用。</view>
       <view class="privacy-link" bindtap="onViewPrivacy">查看隐私政策</view>
       <button class="btn-primary" bindtap="onAgreePrivacy">同意并继续</button>
     </view>
