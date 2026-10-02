@@ -17,6 +17,7 @@ export interface MemberInfo {
 export interface Session {
   member: MemberInfo
   isAdmin: boolean
+  isSuperAdmin: boolean
   needSetup: boolean
 }
 
@@ -53,6 +54,7 @@ export interface StoreConfig {
   }
   reviewBonuses: Array<{
     platform: string
+    name: string
     points: number
     period: string
     maxCount: number
@@ -194,6 +196,63 @@ export interface EventRosterItem {
   member: RosterMember
   source?: string
   createdAt?: Date
+}
+
+export interface EditableConfig {
+  storeInfo: {
+    name: string
+    contact: string
+  }
+  pointTiers: PointTier[]
+  consumptionLimit: {
+    period: string
+    resetDay: number
+    resetHour: number
+    maxCount: number
+  }
+  memberDayBonus: {
+    enabled: boolean
+    label: string
+    weekdays: number[]
+    points: number
+  }
+  reviewBonuses: Array<{
+    platform: string
+    name: string
+    points: number
+    period: string
+    maxCount: number
+  }>
+  levelThresholds: Array<{
+    id: string
+    name: string
+    minPoints: number
+  }>
+  leaderboard: {
+    topCount: number
+    aroundCount: number
+  }
+  privacyText: string
+}
+
+export interface SuperAdminEntry {
+  openid: string
+  member: MemberInfo | null
+}
+
+export interface SuperConsoleData {
+  config: EditableConfig
+  admins: SuperAdminEntry[]
+  superAdmins: SuperAdminEntry[]
+}
+
+export interface AdminCandidate {
+  openid: string
+  nickname: string
+  accountName: string
+  avatar: string
+  isAdmin: boolean
+  isSuperAdmin: boolean
 }
 
 export class ApiError extends Error {
@@ -379,4 +438,10 @@ export const api = {
     sort: string
     options: RedemptionOption[]
   }) => callApi<{ id: string }>('saveRedemptionItem', data),
+  getSuperConsole: () => callApi<SuperConsoleData>('getSuperConsole'),
+  searchAdminCandidates: (q: string) =>
+    callApi<{ items: AdminCandidate[] }>('searchAdminCandidates', { q }),
+  saveAdmins: (admins: string[]) => callApi<{ admins: string[] }>('saveAdmins', { admins }),
+  saveSuperConfig: (config: EditableConfig) =>
+    callApi<{ keys: string[] }>('saveSuperConfig', { config }),
 }

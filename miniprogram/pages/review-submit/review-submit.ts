@@ -1,23 +1,49 @@
-import { api } from '../../utils/api'
+import { api, StoreConfig } from '../../utils/api'
 import { uploadImages } from '../../utils/upload'
-
-const PLATFORMS = [
-  { id: 'xiaohongshu', name: '小红书' },
-  { id: 'dianping', name: '大众点评' },
-]
 
 Page({
   data: {
-    platforms: PLATFORMS,
+    platforms: [] as Array<{
+      id: string
+      name: string
+      points: number
+      period: string
+      maxCount: number
+    }>,
     platform: '',
+    ruleText: '',
     images: [] as string[],
     text: '',
     link: '',
     submitting: false,
   },
 
+  async onLoad() {
+    try {
+      const config: StoreConfig = await api.getConfig()
+      const platforms = (config.reviewBonuses || []).map(r => ({
+        id: r.platform,
+        name: r.name || r.platform,
+        points: r.points,
+        period: r.period,
+        maxCount: r.maxCount,
+      }))
+      this.setData({ platforms })
+      if (!platforms.length) wx.showToast({ title: '暂无可用的评论加分项', icon: 'none' })
+    } catch (e: any) {
+      wx.showToast({ title: e.message || '配置加载失败', icon: 'none' })
+    }
+  },
+
   selectPlatform(e: any) {
-    this.setData({ platform: e.currentTarget.dataset.id })
+    const id = e.currentTarget.dataset.id as string
+    const rule = this.data.platforms.find(p => p.id === id)
+    this.setData({
+      platform: id,
+      ruleText: rule
+        ? `每${rule.period === 'week' ? '周' : '月'}最多 ${rule.maxCount} 次，审核通过 +${rule.points} 分`
+        : '',
+    })
   },
 
   chooseImages() {

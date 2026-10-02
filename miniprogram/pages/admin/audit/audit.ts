@@ -14,6 +14,8 @@ const ACTION_LABELS: Record<string, string> = {
   event_save: '赛事保存',
   event_delete: '赛事删除',
   redemption_item_save: '商品保存',
+  config_update: '配置修改',
+  admin_list_update: '管理员名单修改',
 }
 
 const CHANGE_OPTIONS = [

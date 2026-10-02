@@ -44,8 +44,8 @@ const DEFAULT_CONFIG = {
     points: 1,
   },
   reviewBonuses: [
-    { platform: 'xiaohongshu', points: 3, period: 'month', maxCount: 1 },
-    { platform: 'dianping', points: 3, period: 'month', maxCount: 1 },
+    { platform: 'xiaohongshu', name: '小红书', points: 3, period: 'month', maxCount: 1 },
+    { platform: 'dianping', name: '大众点评', points: 3, period: 'month', maxCount: 1 },
   ],
   levelThresholds: [
     { id: 'bronze', name: '青铜', minPoints: 0 },
@@ -58,6 +58,8 @@ const DEFAULT_CONFIG = {
     aroundCount: 5,
   },
   admins: [],
+  // 超级管理员 openid；只允许在云开发控制台直接改数据库，不提供页面配置
+  superAdmins: [],
   privacyText:
     '欢迎使用 {{storeName}} 会员小程序（下称“本小程序”）。\n\n' +
     '本小程序由 {{storeName}} 运营，用于会员登录、积分与等级管理、消费记录、评论加分审核、赛事报名、荣誉值发放与积分兑换等业务。\n\n' +
@@ -108,6 +110,136 @@ function validateImages(value) {
 
 function randomId(prefix) {
   return `${prefix}_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`
+}
+
+function sanitizeStringList(value, maxItems, maxLen) {
+  const list = Array.isArray(value) ? value : []
+  const out = []
+  for (const item of list) {
+    const s = sanitize(item, maxLen)
+    if (!s || out.includes(s)) continue
+    out.push(s)
+  }
+  if (out.length > maxItems) throw new Error(`最多配置 ${maxItems} 项`)
+  return out
+}
+
+// 超级管理员在页面提交的配置白名单校验（不允许改 superAdmins）
+function normalizeConfigPatch(input) {
+  const patch = {}
+  const src = input || {}
+
+  if (src.storeInfo) {
+    const name = sanitize(src.storeInfo.name, 30)
+    const contact = sanitize(src.storeInfo.contact, 50)
+    if (!name) throw new Error('店铺名称不能为空')
+    if (!contact) throw new Error('联系方式不能为空')
+    patch.storeInfo = { name, contact }
+  }
+
+  if (src.pointTiers !== undefined) {
+    const raw = Array.isArray(src.pointTiers) ? src.pointTiers : []
+    if (!raw.length) throw new Error('至少保留一个消费档位')
+    if (raw.length > 10) throw new Error('消费档位最多 10 个')
+    const ids = []
+    patch.pointTiers = raw.map((t, index) => {
+      const name = sanitize(t.name, 20)
+      const points = sanitizeInt(t.points, 0, 100000)
+      const defaultAmount = sanitizeInt(t.defaultAmount, 0, 10000000)
+      if (!name) throw new Error('档位名称不能为空')
+      if (points === null) throw new Error('档位积分必须是 0 或正整数')
+      if (defaultAmount === null) throw new Error('档位默认金额必须是 0 或正整数')
+      let id = sanitize(t.id, 40) || `tier_${index + 1}`
+      while (ids.includes(id)) id = `${id}_${index + 1}`
+      ids.push(id)
+      return { id, name, points, defaultAmount }
+    })
+  }
+
+  if (src.consumptionLimit) {
+    const period = src.consumptionLimit.period === 'month' ? 'month' : 'week'
+    const resetDay = sanitizeInt(src.consumptionLimit.resetDay, 0, 6)
+    const resetHour = sanitizeInt(src.consumptionLimit.resetHour, 0, 23)
+    const maxCount = sanitizeInt(src.consumptionLimit.maxCount, 1, 100)
+    if (resetDay === null) throw new Error('重置日必须是 0–6')
+    if (resetHour === null) throw new Error('重置小时必须是 0–23')
+    if (maxCount === null) throw new Error('周期次数上限必须是正整数')
+    patch.consumptionLimit = { period, resetDay, resetHour, maxCount }
+  }
+
+  if (src.memberDayBonus) {
+    const weekdays = sanitizeStringList(
+      (Array.isArray(src.memberDayBonus.weekdays) ? src.memberDayBonus.weekdays : []).map(String),
+      7,
+      1
+    )
+      .map(Number)
+      .filter(n => Number.isInteger(n) && n >= 0 && n <= 6)
+    const points = sanitizeInt(src.memberDayBonus.points, 0, 10000)
+    if (points === null) throw new Error('会员日额外分必须是 0 或正整数')
+    patch.memberDayBonus = {
+      enabled: !!src.memberDayBonus.enabled,
+      label: sanitize(src.memberDayBonus.label, 20) || '会员日',
+      weekdays: [...new Set(weekdays)].sort((a, b) => a - b),
+      points,
+    }
+  }
+
+  if (src.reviewBonuses !== undefined) {
+    const raw = Array.isArray(src.reviewBonuses) ? src.reviewBonuses : []
+    if (!raw.length) throw new Error('至少保留一个评论加分项')
+    if (raw.length > 10) throw new Error('评论加分项最多 10 个')
+    const platforms = []
+    patch.reviewBonuses = raw.map((r, index) => {
+      const name = sanitize(r.name, 20)
+      const points = sanitizeInt(r.points, 0, 100000)
+      const maxCount = sanitizeInt(r.maxCount, 0, 100)
+      const period = r.period === 'week' ? 'week' : 'month'
+      if (!name) throw new Error('评论加分名称不能为空')
+      if (points === null) throw new Error('评论加分必须是 0 或正整数')
+      if (maxCount === null) throw new Error('评论次数上限必须是 0 或正整数')
+      // 新增项由服务端分配唯一 id，避免与历史记录冲突
+      let platform = sanitize(r.platform, 40) || randomId('custom')
+      while (platforms.includes(platform)) platform = `${platform}_${index + 1}`
+      platforms.push(platform)
+      return { platform, name, points, period, maxCount }
+    })
+  }
+
+  if (src.levelThresholds !== undefined) {
+    const raw = Array.isArray(src.levelThresholds) ? src.levelThresholds : []
+    if (!raw.length) throw new Error('至少保留一个等级门槛')
+    if (raw.length > 20) throw new Error('等级最多 20 个')
+    const ids = []
+    patch.levelThresholds = raw
+      .map((t, index) => {
+        const name = sanitize(t.name, 20)
+        const minPoints = sanitizeInt(t.minPoints, 0, 100000000)
+        if (!name) throw new Error('等级名称不能为空')
+        if (minPoints === null) throw new Error('等级门槛必须是 0 或正整数')
+        let id = sanitize(t.id, 40) || `level_${index + 1}`
+        while (ids.includes(id)) id = `${id}_${index + 1}`
+        ids.push(id)
+        return { id, name, minPoints }
+      })
+      .sort((a, b) => a.minPoints - b.minPoints)
+  }
+
+  if (src.leaderboard) {
+    const topCount = sanitizeInt(src.leaderboard.topCount, 1, 100)
+    const aroundCount = sanitizeInt(src.leaderboard.aroundCount, 1, 20)
+    if (topCount === null) throw new Error('榜单人数必须是 1–100')
+    if (aroundCount === null) throw new Error('自己前后名次必须是 1–20')
+    patch.leaderboard = { topCount, aroundCount }
+  }
+
+  if (src.privacyText !== undefined) {
+    const privacyText = sanitize(src.privacyText, 5000)
+    if (!privacyText) throw new Error('隐私政策文案不能为空')
+    patch.privacyText = privacyText
+  }
+
+  return patch
 }
 
 function escapeRegExp(s) {
@@ -225,8 +357,18 @@ async function ensureCollections() {
 
 async function requireAdmin(openid) {
   const config = await loadConfig()
-  if (!(config.admins || []).includes(openid)) {
+  const isAdmin = (config.admins || []).includes(openid)
+  const isSuper = (config.superAdmins || []).includes(openid)
+  if (!isAdmin && !isSuper) {
     throw new Error('需要管理员权限')
+  }
+  return config
+}
+
+async function requireSuperAdmin(openid) {
+  const config = await loadConfig()
+  if (!(config.superAdmins || []).includes(openid)) {
+    throw new Error('需要超级管理员权限')
   }
   return config
 }
@@ -505,9 +647,11 @@ async function actionLogin(openid) {
       data: { ...migrated, updatedAt: now() },
     })
   }
+  const isSuperAdmin = (config.superAdmins || []).includes(openid)
   return ok({
     member: toPublicMember(member),
-    isAdmin: (config.admins || []).includes(openid),
+    isAdmin: (config.admins || []).includes(openid) || isSuperAdmin,
+    isSuperAdmin,
     needSetup: !member.accountNameChanged,
   })
 }
@@ -575,7 +719,18 @@ async function actionUpdateProfile(openid, event) {
 
 async function actionGetConfig() {
   const config = await loadConfig()
-  return ok(resolveDisplay(config))
+  // 只下发展示与规则所需的字段，避免把管理员 openid 名单带到客户端
+  const publicConfig = {
+    storeInfo: config.storeInfo,
+    pointTiers: config.pointTiers,
+    consumptionLimit: config.consumptionLimit,
+    memberDayBonus: config.memberDayBonus,
+    reviewBonuses: config.reviewBonuses,
+    levelThresholds: config.levelThresholds,
+    leaderboard: config.leaderboard,
+    privacyText: config.privacyText,
+  }
+  return ok(resolveDisplay(publicConfig))
 }
 
 async function actionIssueMemberCode(openid) {
@@ -737,8 +892,11 @@ async function actionCreateConsumption(openid, event) {
 async function actionSubmitReview(openid, event) {
   const member = await getMemberByOpenid(openid)
   if (!member) throw new Error('请先登录')
-  const platform = sanitize(event.platform, 20)
-  if (!['xiaohongshu', 'dianping'].includes(platform)) throw new Error('请选择平台')
+  const config = await loadConfig()
+  const platform = sanitize(event.platform, 30)
+  const rule = (config.reviewBonuses || []).find(r => r.platform === platform)
+  if (!rule) throw new Error('请选择评论平台')
+  const platformName = rule.name || platform
   const screenshots = Array.isArray(event.screenshots)
     ? event.screenshots.filter(s => typeof s === 'string' && s.startsWith('cloud://'))
     : []
@@ -756,6 +914,7 @@ async function actionSubmitReview(openid, event) {
     data: {
       memberId: member._id,
       platform,
+      platformName,
       screenshots,
       text,
       link,
@@ -774,13 +933,23 @@ async function actionSubmitReview(openid, event) {
 async function actionListMyReviews(openid) {
   const member = await getMemberByOpenid(openid)
   if (!member) throw new Error('请先登录')
+  const config = await loadConfig()
+  const platformNames = {}
+  ;(config.reviewBonuses || []).forEach(r => {
+    platformNames[r.platform] = r.name || r.platform
+  })
   const res = await db
     .collection('review_submissions')
     .where({ memberId: member._id })
     .orderBy('createdAt', 'desc')
     .limit(50)
     .get()
-  return ok({ items: res.data })
+  return ok({
+    items: res.data.map(item => ({
+      ...item,
+      platformName: item.platformName || platformNames[item.platform] || item.platform,
+    })),
+  })
 }
 
 async function actionListReviewSubmissions(openid, event) {
@@ -806,6 +975,10 @@ async function actionListReviewSubmissions(openid, event) {
     })
   }
   const config = await loadConfig()
+  const platformNames = {}
+  ;(config.reviewBonuses || []).forEach(r => {
+    platformNames[r.platform] = r.name || r.platform
+  })
   const enriched = []
   for (const item of items) {
     const monthUsage = await reviewMonthUsage(item.memberId, item.platform, config)
@@ -822,6 +995,7 @@ async function actionListReviewSubmissions(openid, event) {
       .get()
     enriched.push({
       ...item,
+      platformName: item.platformName || platformNames[item.platform] || item.platform,
       member: members[item.memberId] || null,
       monthUsage,
       history: histRes.data.map(h => ({
@@ -880,6 +1054,9 @@ async function actionReviewAction(openid, event) {
   }
 
   if (action === 'approve') {
+    const rule = (config.reviewBonuses || []).find(r => r.platform === sub.platform)
+    if (!rule) throw new Error('该评论加分项已从配置中移除，无法通过审核')
+    const platformName = rule.name || sub.platformName || sub.platform
     const usage = await reviewMonthUsage(sub.memberId, sub.platform, config)
     const overLimit = usage.used >= usage.max
     let specialReason = ''
@@ -908,7 +1085,7 @@ async function actionReviewAction(openid, event) {
         sourceType: 'review_bonus',
         sourceId: id,
         subtype: overLimit ? 'special' : 'normal',
-        note: sub.text || (sub.platform === 'xiaohongshu' ? '小红书评论加分' : '大众点评评论加分'),
+        note: sub.text || `${platformName}评论加分`,
         actorId: openid,
         actorNickname: actor ? actor.nickname : '',
         actionType: 'review_approve',
@@ -1825,6 +2002,118 @@ async function actionSaveRedemptionItem(openid, event) {
   return ok({ id: addRes._id })
 }
 
+// ---------------- 超级管理端 ----------------
+
+// 超级管理员按 账号名 / 昵称 / openid 模糊搜索会员，用于挑选管理员
+async function actionSearchAdminCandidates(openid, event) {
+  const config = await requireSuperAdmin(openid)
+  const q = sanitize(event.q, 40)
+  if (!q) return ok({ items: [] })
+  const rx = db.RegExp({ regexp: escapeRegExp(q), options: 'i' })
+  const res = await db
+    .collection('members')
+    .where(_.or([{ accountName: rx }, { nickname: rx }, { openid: rx }]))
+    .limit(20)
+    .get()
+  const adminIds = config.admins || []
+  const superIds = config.superAdmins || []
+  return ok({
+    items: res.data.map(m => ({
+      openid: m.openid,
+      nickname: m.nickname || '',
+      accountName: m.accountName || '',
+      avatar: m.avatar || '',
+      isAdmin: adminIds.includes(m.openid),
+      isSuperAdmin: superIds.includes(m.openid),
+    })),
+  })
+}
+
+// 超级管理员可读的完整配置 + 管理员名单（超级管理员名单只读）
+async function actionGetSuperConsole(openid) {
+  const config = await requireSuperAdmin(openid)
+  const adminIds = config.admins || []
+  const superIds = config.superAdmins || []
+  const allIds = [...new Set([...adminIds, ...superIds])].slice(0, 100)
+  const members = {}
+  if (allIds.length) {
+    const res = await db.collection('members').where({ openid: _.in(allIds) }).get()
+    res.data.forEach(m => {
+      members[m.openid] = toPublicMember(m)
+    })
+  }
+  return ok({
+    config: {
+      storeInfo: config.storeInfo,
+      pointTiers: config.pointTiers,
+      consumptionLimit: config.consumptionLimit,
+      memberDayBonus: config.memberDayBonus,
+      reviewBonuses: config.reviewBonuses,
+      levelThresholds: config.levelThresholds,
+      leaderboard: config.leaderboard,
+      privacyText: config.privacyText,
+    },
+    admins: adminIds.map(id => ({ openid: id, member: members[id] || null })),
+    superAdmins: superIds.map(id => ({ openid: id, member: members[id] || null })),
+  })
+}
+
+// 保存普通管理员名单（超级管理员名单不可通过页面修改）
+async function actionSaveAdmins(openid, event) {
+  const config = await requireSuperAdmin(openid)
+  const actor = await getMemberByOpenid(openid)
+  const admins = sanitizeStringList(event.admins, 50, 64)
+  const ts = now()
+  await db.collection('configs').doc('default').update({ data: { admins, updatedAt: ts } })
+  await db.collection('audit_logs').add({
+    data: {
+      actorId: openid,
+      actorNickname: actor ? actor.nickname : '',
+      actionType: 'admin_list_update',
+      targetType: 'config',
+      targetId: 'default',
+      targetMemberId: '',
+      targetMemberNickname: '',
+      changeType: 'none',
+      delta: 0,
+      reason: '',
+      specialFlag: false,
+      metadata: { admins, superAdmins: config.superAdmins || [] },
+      createdAt: ts,
+    },
+  })
+  return ok({ admins })
+}
+
+// 保存规则类配置（档位、次数限制、会员日、评论加分、等级、排行榜、店铺信息、隐私文案）
+async function actionSaveSuperConfig(openid, event) {
+  await requireSuperAdmin(openid)
+  const actor = await getMemberByOpenid(openid)
+  const patch = normalizeConfigPatch(event.config || {})
+  const keys = Object.keys(patch)
+  if (!keys.length) throw new Error('没有需要更新的配置')
+  const ts = now()
+  await db.collection('configs').doc('default').update({ data: { ...patch, updatedAt: ts } })
+  await db.collection('audit_logs').add({
+    data: {
+      actorId: openid,
+      actorNickname: actor ? actor.nickname : '',
+      actionType: 'config_update',
+      targetType: 'config',
+      targetId: 'default',
+      targetMemberId: '',
+      targetMemberNickname: '',
+      changeType: 'none',
+      delta: 0,
+      reason: '',
+      specialFlag: false,
+      metadata: { keys },
+      createdAt: ts,
+    },
+  })
+  return ok({ keys })
+}
+
 // ---------------- 路由 ----------------
 
 exports.main = async (event = {}) => {
@@ -1903,6 +2192,14 @@ exports.main = async (event = {}) => {
         return await actionListAdminRedemptionItems(OPENID)
       case 'saveRedemptionItem':
         return await actionSaveRedemptionItem(OPENID, event)
+      case 'getSuperConsole':
+        return await actionGetSuperConsole(OPENID)
+      case 'searchAdminCandidates':
+        return await actionSearchAdminCandidates(OPENID, event)
+      case 'saveAdmins':
+        return await actionSaveAdmins(OPENID, event)
+      case 'saveSuperConfig':
+        return await actionSaveSuperConfig(OPENID, event)
       default:
         return fail('未知操作')
     }

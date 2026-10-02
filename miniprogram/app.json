@@ -21,7 +21,8 @@
     "pages/admin/event-edit/event-edit",
     "pages/admin/event-roster/event-roster",
     "pages/admin/item-list/item-list",
-    "pages/admin/item-edit/item-edit"
+    "pages/admin/item-edit/item-edit",
+    "pages/admin/super/super"
   ],
   "window": {
     "navigationBarTextStyle": "black",

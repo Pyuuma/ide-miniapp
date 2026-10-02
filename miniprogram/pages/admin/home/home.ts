@@ -5,6 +5,7 @@ Page({
   data: {
     pendingCount: 0,
     loading: true,
+    isSuperAdmin: false,
   },
 
   onShow() {
@@ -20,7 +21,7 @@ Page({
       })
       return
     }
-    this.setData({ loading: true })
+    this.setData({ loading: true, isSuperAdmin: !!session.isSuperAdmin })
     try {
       const res = await api.listReviewSubmissions('pending')
       this.setData({ pendingCount: res.items.length })
@@ -53,5 +54,9 @@ Page({
 
   goItems() {
     wx.navigateTo({ url: '/pages/admin/item-list/item-list' })
+  },
+
+  goSuper() {
+    wx.navigateTo({ url: '/pages/admin/super/super' })
   },
 })

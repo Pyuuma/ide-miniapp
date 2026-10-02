@@ -81,8 +81,8 @@
     "points": 1
   },
   "reviewBonuses": [
-    { "platform": "xiaohongshu", "points": 3, "period": "month", "maxCount": 1 },
-    { "platform": "dianping", "points": 3, "period": "month", "maxCount": 1 }
+    { "platform": "xiaohongshu", "name": "小红书", "points": 3, "period": "month", "maxCount": 1 },
+    { "platform": "dianping", "name": "大众点评", "points": 3, "period": "month", "maxCount": 1 }
   ],
   "levelThresholds": [
     { "id": "bronze", "name": "青铜", "minPoints": 0 },
@@ -95,6 +95,8 @@
 ```
 
 周期限制支持按周/按月，周重置时间为周一 04:00（可配）。`memberDayBonus.weekdays` 用 JS 星期编号（0 = 周日、1 = 周一 … 6 = 周六），默认 `[2, 4]` 即周二、周四；按中国时区判断默认勾选状态，设为 `enabled: false` 可关闭整个功能。是否加分**由操作者在录入页勾选决定**：会员日默认勾选、非会员日默认不勾，操作者可手动勾选或取消，额外分同时计入积分与成长值。
+
+`reviewBonuses` 是**可增删的评论加分项列表**（最多 10 项），每项含展示名称、每次积分、周期（按周/按月）与周期内次数上限；默认小红书、大众点评。会员端提交页的平台选项直接来自该配置，管理端审核与加分规则同源；新增项由服务端自动分配 `platform` id（`custom_N`）。
 
 ## 关键流程
 
@@ -139,6 +141,23 @@
 1. **荣誉值**：管理员在赛事名单勾选会员并填写荣誉值（统一或逐人）后发放，或通过手动调整发放；均写入荣誉值明细与审计记录。
 2. **赛事报名**：发布后赛事即展示；会员仅可在报名开始时间至报名截止时间之间自助报名（未设开始时间则发布后即可报，未设截止时间则至赛事结束），同一赛事一人一条；截止后不可取消；管理员补录/移除不受时间与名额限制，操作写审计。
 3. **积分兑换**：管理员搜索会员 → 选商品+选项 → 自动带出所需积分与备注（商品名）→ 可修改积分和备注 → 确认扣分；会员端仅展示目录和“联系工作人员兑换”，不直接兑换。
+
+### 超级管理台
+
+在管理端之上增加 **超级管理员** 角色：openid 白名单存放在 `configs/default.superAdmins`，**只能通过云开发控制台修改数据库，页面不提供配置入口**；超级管理员同时拥有普通管理员的全部权限。
+
+入口：管理端首页 →「超级管理台」（仅超级管理员可见，云函数侧同样校验）。
+
+可维护内容：
+
+- **管理员名单**：输入账号 ID / 账号名 / openid 模糊搜索 → 从下拉结果中选择会员加入 → 保存（写入 `configs/default.admins`）；已在名单或已是超级管理员的会员会标注且不可重复添加，超级管理员名单只读展示
+- **规则与展示配置**：`storeInfo`、`pointTiers`、`consumptionLimit`、`memberDayBonus`、`reviewBonuses`、`levelThresholds`、`leaderboard`、`privacyText`
+
+规则配置的保存按钮固定在页面底部；保存前对比页面原始配置生成 diff 并弹窗确认，确认后才提交。云函数新增 `getSuperConsole`（读取配置与名单）、`searchAdminCandidates`（按账号名/昵称/openid 模糊搜索会员）、`saveAdmins`（保存管理员名单）、`saveSuperConfig`（保存规则配置，服务端白名单校验，`superAdmins` 不可通过接口修改）。两处保存都会写入审计记录（`config_update` / `admin_list_update`）。
+
+安全调整：`getConfig` 只下发展示与规则字段，不再把 `admins` / `superAdmins` 名单返回给客户端。
+
+初始化：首次部署后先登录一次（生成 `members` 记录），在控制台把该会员的 openid 写入 `configs/default.superAdmins`，之后即可在页面上维护其余配置。
 
 ### 技术默认项
 

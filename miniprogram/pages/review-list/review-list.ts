@@ -26,7 +26,7 @@ Page({
       const res = await api.listMyReviews()
       const items = res.items.map((it: any) => ({
         ...it,
-        platformName: PLATFORM_NAMES[it.platform] || it.platform,
+        platformName: it.platformName || PLATFORM_NAMES[it.platform] || it.platform,
         statusText: STATUS_TEXT[it.status] || it.status,
         timeText: formatDateTime(it.createdAt),
         rejectText: it.status === 'rejected' ? it.rejectReason : '',

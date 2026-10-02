@@ -9,7 +9,7 @@
       bindtap="selectPlatform"
     >{{item.name}}</view>
   </view>
-  <view class="muted">每个平台每月可加一次分，审核通过后 +3 分</view>
+  <view class="muted">{{ruleText || '选择平台后显示该平台的加分规则'}}</view>
 </view>
 
 <view class="card">

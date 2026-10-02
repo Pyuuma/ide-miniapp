@@ -50,7 +50,7 @@ Page({
     const usageText = `本月已通过 ${it.monthUsage.used} / ${it.monthUsage.max} 次`
     return {
       ...it,
-      platformName: PLATFORM_NAMES[it.platform] || it.platform,
+      platformName: it.platformName || PLATFORM_NAMES[it.platform] || it.platform,
       memberName: it.member ? `${it.member.nickname} @${it.member.accountName}` : '未知会员',
       timeText: formatDateTime(it.createdAt),
       statusText: it.status === 'approved' ? '已通过' : it.status === 'rejected' ? '已拒绝' : '待审核',
