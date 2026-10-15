@@ -20,6 +20,7 @@ const REQUIRED_COLLECTIONS = [
   'event_registrations',
   'redemption_items',
   'honor_entries',
+  'operation_guards',
 ]
 
 const DEFAULT_CONFIG = {
@@ -264,14 +265,16 @@ function periodStart(rule, at = new Date()) {
   const year = local.getUTCFullYear()
   const month = local.getUTCMonth()
   const date = local.getUTCDate()
-  const weekday = local.getUTCDay()
-  const hour = rule.resetHour != null ? rule.resetHour : 0
+  const hour = rule.resetHour != null ? Number(rule.resetHour) : 0
   let startLocal
   if (rule.period === 'week') {
-    const daysSinceMonday = (weekday + 6) % 7
-    startLocal = Date.UTC(year, month, date - daysSinceMonday, hour, 0, 0)
+    const resetDay = rule.resetDay != null ? Number(rule.resetDay) : 1
+    const daysSinceReset = (local.getUTCDay() - resetDay + 7) % 7
+    startLocal = Date.UTC(year, month, date - daysSinceReset, hour)
+    if (startLocal > local.getTime()) startLocal -= 7 * 24 * 60 * 60 * 1000
   } else {
-    startLocal = Date.UTC(year, month, 1, hour, 0, 0)
+    startLocal = Date.UTC(year, month, 1, hour)
+    if (startLocal > local.getTime()) startLocal = Date.UTC(year, month - 1, 1, hour)
   }
   return new Date(startLocal - offsetMs)
 }
@@ -335,14 +338,97 @@ function mergeConfig(stored) {
   }
 }
 
-async function loadConfig() {
-  try {
-    const res = await db.collection('configs').doc('default').get()
-    return mergeConfig(res.data)
-  } catch (e) {
-    await db.collection('configs').doc('default').set({ data: DEFAULT_CONFIG })
-    return DEFAULT_CONFIG
+function errorText(error) {
+  return [error && error.message, error && error.errMsg, error && error.code, error && error.errCode]
+    .filter(v => v !== undefined && v !== null).join(' ')
+}
+
+function isTransactionConflict(error) {
+  if (!error || typeof error !== 'object') return false
+  if (error.code === 'DATABASE_TRANSACTION_CONFLICT') return true
+  // Preserve existing business / permission / transport codes. wx-server-sdk
+  // 4.0.2 loses the original code only on its document-operation error wrapper.
+  if (error.code !== undefined && error.code !== null) return false
+  if (Number(error.errCode) !== -501001) return false
+  return [error.message, error.errMsg].some(value => {
+    if (typeof value !== 'string') return false
+    const detail = value.trim().replace(
+      /^[a-z.]+:fail -501001 resource system error\.\s*/i, ''
+    )
+    return /^DATABASE_TRANSACTION_CONFLICT(?:$|[\s:])/.test(detail) ||
+      /^(?:database )?transaction conflict[.!]?$/i.test(detail)
+  })
+}
+
+async function runTransaction(callback) {
+  // One budget: four whole-transaction attempts, matching the SDK's default.
+  // Disable its inner retries so each failure is rolled back before a fresh
+  // transaction begins. Never replay individual writes or nontransactional work.
+  for (let attempt = 0; attempt < 4; attempt++) {
+    try {
+      return await db.runTransaction(callback, 0)
+    } catch (error) {
+      if (attempt === 3 || !isTransactionConflict(error)) throw error
+    }
   }
+}
+
+function isMissingDocument(error) {
+  // wx-server-sdk wraps precisely this missing-document result in a CloudSDKError.
+  // Collection, transport, permission and arbitrary database failures must propagate.
+  return /document with _id .+ does not exist/i.test(errorText(error))
+}
+
+function isDuplicateKey(error) {
+  return /duplicate[ _-]key|E11000|DATABASE_DUPLICATE_KEY/i.test(errorText(error))
+}
+
+function businessError(message, code) {
+  const error = new Error(message)
+  error.code = code
+  return error
+}
+
+async function optionalDoc(ref) {
+  try {
+    const result = await ref.get()
+    return result.data || null
+  } catch (e) {
+    if (isMissingDocument(e)) return null
+    throw e
+  }
+}
+
+function guardId(...parts) {
+  return crypto.createHash('sha256').update(JSON.stringify(parts)).digest('hex')
+}
+
+// All new-version writers of a logical resource read AND write this fixed document.
+// count()/queries below are deliberately nontransactional in this SDK. They are used
+// only after this fence has been written: a competing writer must conflict/retry.
+// Recounting committed rows on EACH attempt preserves history and rule changes,
+// including requests holding older rules. No zero-based lazy migration is needed.
+// Deploy all writers together; console writes / old versions do not observe this fence.
+async function touchGuard(t, ...parts) {
+  const ref = t.collection('operation_guards').doc(guardId(...parts))
+  const previous = await optionalDoc(ref)
+  const data = { kind: parts[0], revision: (previous && previous.revision || 0) + 1, updatedAt: now() }
+  await ref.set({ data })
+  return ref
+}
+
+async function loadConfig() {
+  const stored = await optionalDoc(db.collection('configs').doc('default'))
+  if (stored) return mergeConfig(stored)
+  try {
+    // add with a fixed primary key is create-only; set would overwrite a racing save.
+    await db.collection('configs').add({ data: { ...DEFAULT_CONFIG, _id: 'default' } })
+  } catch (e) {
+    if (!isDuplicateKey(e)) throw e
+    const existing = await db.collection('configs').doc('default').get()
+    return mergeConfig(existing.data)
+  }
+  return mergeConfig(DEFAULT_CONFIG)
 }
 
 async function ensureCollections() {
@@ -379,12 +465,7 @@ async function getMemberByOpenid(openid) {
 }
 
 async function getMemberById(id) {
-  try {
-    const res = await db.collection('members').doc(id).get()
-    return res.data
-  } catch (e) {
-    return null
-  }
+  return optionalDoc(db.collection('members').doc(id))
 }
 
 function toPublicMember(m) {
@@ -419,9 +500,9 @@ async function genUniqueAccountName() {
   throw new Error('账号名生成失败，请重试')
 }
 
-async function consumptionUsage(memberId, config) {
+async function consumptionUsage(memberId, config, at = now()) {
   const rule = config.consumptionLimit || {}
-  const start = periodStart(rule)
+  const start = periodStart(rule, at)
   const res = await db
     .collection('consumption_records')
     .where({ memberId, createdAt: _.gte(start) })
@@ -433,10 +514,10 @@ async function consumptionUsage(memberId, config) {
   }
 }
 
-async function reviewMonthUsage(memberId, platform, config) {
+async function reviewMonthUsage(memberId, platform, config, at = now()) {
   const rule = (config.reviewBonuses || []).find(r => r.platform === platform)
   if (!rule) return { used: 0, max: 0, points: 0 }
-  const start = periodStart({ period: rule.period || 'month', resetHour: 0 })
+  const start = periodStart({ period: rule.period || 'month', resetHour: 0 }, at)
   const res = await db
     .collection('review_submissions')
     .where({ memberId, platform, status: 'approved', createdAt: _.gte(start) })
@@ -445,6 +526,7 @@ async function reviewMonthUsage(memberId, platform, config) {
     used: res.total,
     max: rule.maxCount || 0,
     points: rule.points || 0,
+    period: rule.period || 'month',
   }
 }
 
@@ -452,12 +534,16 @@ async function reviewMonthUsage(memberId, platform, config) {
 async function applyPoints(t, o) {
   const ts = now()
   const memRes = await t.collection('members').doc(o.memberId).get()
-  const member = memRes.data || {}
+  const member = memRes.data
+  if (!member) throw new Error('会员不存在')
   const growthDelta = o.growthDelta || 0
   const pointsDelta = o.pointsDelta || 0
   const honorDelta = o.honorDelta || 0
   const growthAfter = (member.growth || 0) + growthDelta
   const pointsAfter = (member.points || 0) + pointsDelta
+  if (pointsDelta < 0 && pointsAfter < 0) {
+    throw businessError(`积分不足（当前 ${member.points || 0} 分）`, 'INSUFFICIENT_POINTS')
+  }
   const honorAfter = (member.honor || 0) + honorDelta
   const level = calcLevel(growthAfter, o.config)
   await t
@@ -545,7 +631,8 @@ async function applyPoints(t, o) {
 async function applyHonor(t, o) {
   const ts = now()
   const memRes = await t.collection('members').doc(o.memberId).get()
-  const member = memRes.data || {}
+  const member = memRes.data
+  if (!member) throw new Error('会员不存在')
   const honorDelta = o.honorDelta || 0
   const honorAfter = (member.honor || 0) + honorDelta
   await t
@@ -594,32 +681,53 @@ async function applyHonor(t, o) {
 
 // ---------------- 动作实现 ----------------
 
+const pendingLogins = new Map()
+
 async function actionLogin(openid) {
+  if (pendingLogins.has(openid)) return pendingLogins.get(openid)
+  const request = performLogin(openid)
+  pendingLogins.set(openid, request)
+  try {
+    return await request
+  } finally {
+    if (pendingLogins.get(openid) === request) pendingLogins.delete(openid)
+  }
+}
+
+async function performLogin(openid) {
   const config = await loadConfig()
   let member = await getMemberByOpenid(openid)
   if (!member) {
     const accountName = await genUniqueAccountName()
     const ts = now()
-    const res = await db.collection('members').add({
-      data: {
-        openid,
-        accountName,
-        accountNameChanged: false,
-        nickname: accountName,
-        avatar: '',
-        signature: '',
-        points: 0,
-        growth: 0,
-        honor: 0,
-        leaderboardAnon: false,
-        level: 'bronze',
-        levelName: '青铜',
-        roles: [],
-        createdAt: ts,
-        updatedAt: ts,
-      },
-    })
-    member = await getMemberById(res._id)
+    try {
+      const res = await db.collection('members').add({
+        data: {
+          openid,
+          accountName,
+          accountNameChanged: false,
+          nickname: accountName,
+          avatar: '',
+          signature: '',
+          points: 0,
+          growth: 0,
+          honor: 0,
+          leaderboardAnon: false,
+          level: 'bronze',
+          levelName: '青铜',
+          roles: [],
+          createdAt: ts,
+          updatedAt: ts,
+        },
+      })
+      member = await getMemberById(res._id)
+    } catch (e) {
+      // Requires deployed unique members.openid and members.accountName indexes.
+      // A duplicate account-name collision must not be mistaken for an existing identity.
+      if (!isDuplicateKey(e)) throw e
+      member = await getMemberByOpenid(openid)
+      if (!member) throw e
+    }
   }
   // 旧数据迁移：成长值默认等于已有积分；排行榜默认实名
   const migrated = {}
@@ -662,34 +770,41 @@ async function actionRenameAccountName(openid, event) {
     throw new Error('账号名需以字母开头，可含英文字母、数字、下划线、横线，长度 5–20')
   }
   const accountName = raw.toLowerCase()
-  const member = await getMemberByOpenid(openid)
-  if (!member) throw new Error('请先登录')
-  if (member.accountNameChanged) throw new Error('账号名只能修改一次')
-  const dup = await db.collection('members').where({ accountName }).count()
-  if (dup.total > 0) throw new Error('该账号名已被占用')
-  const ts = now()
-  await db
-    .collection('members')
-    .doc(member._id)
-    .update({ data: { accountName, accountNameChanged: true, updatedAt: ts } })
-  await db.collection('audit_logs').add({
-    data: {
-      actorId: openid,
-      actorNickname: member.nickname || accountName,
-      actionType: 'account_rename',
-      targetType: 'member',
-      targetId: member._id,
-      targetMemberId: member._id,
-      targetMemberNickname: member.nickname || accountName,
-      changeType: 'none',
-      delta: 0,
-      reason: '',
-      specialFlag: false,
-      metadata: { from: member.accountName, to: accountName },
-      createdAt: ts,
-    },
-  })
-  const updated = await getMemberById(member._id)
+  const identity = await getMemberByOpenid(openid)
+  if (!identity) throw new Error('请先登录')
+  let updated
+  try {
+    await runTransaction(async t => {
+      const res = await t.collection('members').doc(identity._id).get()
+      const member = res.data
+      if (!member) throw new Error('会员不存在')
+      if (member.accountNameChanged) throw new Error('账号名只能修改一次')
+      // The deployed unique accountName index is the cross-member arbiter.
+      const dup = await db.collection('members').where({ accountName }).count()
+      if (dup.total > 0) throw new Error('该账号名已被占用')
+      const ts = now()
+      const patch = { accountName, accountNameChanged: true, updatedAt: ts }
+      await t.collection('members').doc(member._id).update({ data: patch })
+      await t.collection('audit_logs').add({
+        data: {
+          actorId: openid,
+          actorNickname: member.nickname || accountName,
+          actionType: 'account_rename',
+          targetType: 'member',
+          targetId: member._id,
+          targetMemberId: member._id,
+          targetMemberNickname: member.nickname || accountName,
+          changeType: 'none', delta: 0, reason: '', specialFlag: false,
+          metadata: { from: member.accountName, to: accountName },
+          createdAt: ts,
+        },
+      })
+      updated = { ...member, ...patch }
+    })
+  } catch (e) {
+    if (isDuplicateKey(e)) throw new Error('该账号名已被占用')
+    throw e
+  }
   return ok({ member: toPublicMember(updated) })
 }
 
@@ -827,16 +942,17 @@ async function actionCreateConsumption(openid, event) {
     tier.name +
     (bonusPoints ? `（${memberDay.label} +${bonusPoints}）` : '') +
     (note ? '，' + note : '')
-  const usage = await consumptionUsage(memberId, config)
-  const overLimit = usage.used >= usage.max
-  let specialReason = ''
-  if (overLimit) {
-    specialReason = sanitize(event.specialReason, 200)
-    if (!specialReason) throw new Error('已超过本周录入上限，必须填写特别录入原因')
-  }
   const ts = now()
   let result = null
-  await db.runTransaction(async t => {
+  await runTransaction(async t => {
+    const quota = await touchGuard(t, 'consumption', memberId)
+    const usage = await consumptionUsage(memberId, config, ts)
+    const overLimit = usage.used >= usage.max
+    const specialReason = overLimit ? sanitize(event.specialReason, 200) : ''
+    if (overLimit && !specialReason) {
+      throw businessError(`已超过本${usage.period === 'month' ? '月' : '周'}录入上限，必须填写特别录入原因`, 'CONSUMPTION_LIMIT_REACHED')
+    }
+    await quota.update({ data: { used: usage.used + 1, period: usage.period, periodStart: periodStart(config.consumptionLimit, ts) } })
     const addRes = await t.collection('consumption_records').add({
       data: {
         memberId,
@@ -955,12 +1071,22 @@ async function actionListMyReviews(openid) {
 async function actionListReviewSubmissions(openid, event) {
   await requireAdmin(openid)
   const status = sanitize(event.status, 20)
-  const where = status && status !== 'all' ? { status } : {}
+  if (status && !['all', 'pending', 'processed', 'approved', 'rejected'].includes(status)) {
+    throw new Error('审核状态无效')
+  }
+  const where = status === 'processed'
+    ? { status: _.in(['approved', 'rejected']) }
+    : status && status !== 'all' ? { status } : {}
+  const page = sanitizeInt(event.page, 1, 100000) || 1
+  const pageSize = sanitizeInt(event.pageSize, 1, 50) || 20
+  const total = await db.collection('review_submissions').where(where).count()
   const res = await db
     .collection('review_submissions')
     .where(where)
     .orderBy('createdAt', 'desc')
-    .limit(50)
+    .orderBy('_id', 'desc')
+    .skip((page - 1) * pageSize)
+    .limit(pageSize)
     .get()
   const items = res.data
   const memberIds = [...new Set(items.map(i => i.memberId))]
@@ -1006,101 +1132,72 @@ async function actionListReviewSubmissions(openid, event) {
       })),
     })
   }
-  return ok({ items: enriched })
+  return ok({ items: enriched, total: total.total, page, pageSize })
 }
 
 async function actionReviewAction(openid, event) {
   const config = await requireAdmin(openid)
   const id = sanitize(event.id, 64)
   const action = sanitize(event.subAction, 20)
-  let subRes
-  try {
-    subRes = await db.collection('review_submissions').doc(id).get()
-  } catch (e) {
-    throw new Error('申请不存在')
-  }
-  const sub = subRes.data
-  if (sub.status !== 'pending') throw new Error('该申请已处理')
-  const member = await getMemberById(sub.memberId)
-  if (!member) throw new Error('会员不存在')
+  if (!['approve', 'reject'].includes(action)) throw new Error('未知操作')
   const actor = await getMemberByOpenid(openid)
   const ts = now()
-
-  if (action === 'reject') {
-    const reason = sanitize(event.reason, 200)
-    if (!reason) throw new Error('拒绝原因必填')
-    await db
-      .collection('review_submissions')
-      .doc(id)
-      .update({ data: { status: 'rejected', reviewedBy: openid, reviewTime: ts, rejectReason: reason } })
-    await db.collection('audit_logs').add({
-      data: {
-        actorId: openid,
-        actorNickname: actor ? actor.nickname : '',
-        actionType: 'review_reject',
-        targetType: 'review_submission',
-        targetId: id,
-        targetMemberId: sub.memberId,
-        targetMemberNickname: member.nickname,
-        changeType: 'none',
-        delta: 0,
-        reason,
-        specialFlag: false,
-        metadata: { platform: sub.platform },
-        createdAt: ts,
-      },
-    })
-    return ok({ id })
-  }
-
-  if (action === 'approve') {
+  // Only use this outside read to choose a fixed quota guard, then re-read the
+  // submission inside the transaction before making any status decision.
+  const initial = await optionalDoc(db.collection('review_submissions').doc(id))
+  if (!initial) throw new Error('申请不存在')
+  await runTransaction(async t => {
+    const quota = await touchGuard(t, 'review', initial.memberId, initial.platform)
+    const sub = await optionalDoc(t.collection('review_submissions').doc(id))
+    if (!sub) throw new Error('申请不存在')
+    if (sub.memberId !== initial.memberId || sub.platform !== initial.platform) throw new Error('申请信息已变化，请刷新重试')
+    if (sub.status !== 'pending') throw new Error('该申请已处理')
+    const mem = await t.collection('members').doc(sub.memberId).get()
+    const member = mem.data
+    if (!member) throw new Error('会员不存在')
+    if (action === 'reject') {
+      const reason = sanitize(event.reason, 200)
+      if (!reason) throw new Error('拒绝原因必填')
+      await t.collection('review_submissions').doc(id).update({
+        data: { status: 'rejected', reviewedBy: openid, reviewTime: ts, rejectReason: reason },
+      })
+      await t.collection('audit_logs').add({
+        data: {
+          actorId: openid, actorNickname: actor ? actor.nickname : '',
+          actionType: 'review_reject', targetType: 'review_submission', targetId: id,
+          targetMemberId: sub.memberId, targetMemberNickname: member.nickname,
+          changeType: 'none', delta: 0, reason, specialFlag: false,
+          metadata: { platform: sub.platform }, createdAt: ts,
+        },
+      })
+      return
+    }
     const rule = (config.reviewBonuses || []).find(r => r.platform === sub.platform)
     if (!rule) throw new Error('该评论加分项已从配置中移除，无法通过审核')
     const platformName = rule.name || sub.platformName || sub.platform
-    const usage = await reviewMonthUsage(sub.memberId, sub.platform, config)
+    const usage = await reviewMonthUsage(sub.memberId, sub.platform, config, ts)
     const overLimit = usage.used >= usage.max
-    let specialReason = ''
-    if (overLimit) {
-      specialReason = sanitize(event.specialReason, 200)
-      if (!specialReason) throw new Error('该平台本月已达上限，必须填写特别录入原因')
+    const specialReason = overLimit ? sanitize(event.specialReason, 200) : ''
+    if (overLimit && !specialReason) {
+      throw businessError(`该平台本${usage.period === 'week' ? '周' : '月'}已达上限，必须填写特别录入原因`, 'REVIEW_LIMIT_REACHED')
     }
-    await db.runTransaction(async t => {
-      await t
-        .collection('review_submissions')
-        .doc(id)
-        .update({
-          data: {
-            status: 'approved',
-            reviewedBy: openid,
-            reviewTime: ts,
-            isSpecial: overLimit,
-            specialReason,
-            rejectReason: '',
-          },
-        })
-      await applyPoints(t, {
-        memberId: sub.memberId,
-        growthDelta: usage.points || 0,
-        pointsDelta: usage.points || 0,
-        sourceType: 'review_bonus',
-        sourceId: id,
-        subtype: overLimit ? 'special' : 'normal',
-        note: sub.text || `${platformName}评论加分`,
-        actorId: openid,
-        actorNickname: actor ? actor.nickname : '',
-        actionType: 'review_approve',
-        targetType: 'review_submission',
-        targetId: id,
-        targetMemberNickname: member.nickname,
-        reason: specialReason,
-        specialFlag: overLimit,
-        config,
-      })
+    const start = periodStart({ period: usage.period, resetHour: 0 }, ts)
+    const consumesCurrentPeriod = sub.createdAt.getTime() >= start.getTime()
+    await quota.update({ data: { used: usage.used + (consumesCurrentPeriod ? 1 : 0), period: usage.period, periodStart: start } })
+    await t.collection('review_submissions').doc(id).update({
+      data: { status: 'approved', reviewedBy: openid, reviewTime: ts,
+        isSpecial: overLimit, specialReason, rejectReason: '' },
     })
-    return ok({ id })
-  }
-
-  throw new Error('未知操作')
+    await applyPoints(t, {
+      memberId: sub.memberId, growthDelta: usage.points || 0, pointsDelta: usage.points || 0,
+      sourceType: 'review_bonus', sourceId: id, subtype: overLimit ? 'special' : 'normal',
+      note: sub.text || `${platformName}评论加分`, actorId: openid,
+      actorNickname: actor ? actor.nickname : '', actionType: 'review_approve',
+      targetType: 'review_submission', targetId: id, targetMemberNickname: member.nickname,
+      reason: specialReason, specialFlag: overLimit, config,
+    })
+  })
+  return ok({ id })
 }
 
 async function actionListPointEntries(openid, event) {
@@ -1126,6 +1223,7 @@ async function actionListPointEntries(openid, event) {
     points: member.points || 0,
     growth: member.growth || 0,
     honor: member.honor || 0,
+    level: member.level || 'bronze',
     levelName: member.levelName || '青铜',
   })
 }
@@ -1152,9 +1250,18 @@ async function actionListHonorEntries(openid, event) {
     points: member.points || 0,
     growth: member.growth || 0,
     honor: member.honor || 0,
+    level: member.level || 'bronze',
     levelName: member.levelName || '青铜',
   })
 }
+
+// applyPoints emits components in points, growth, honor order. Include every
+// nonempty combination, plus historical single-component strings.
+const AUDIT_CHANGE_TYPES = Object.freeze({
+  points_increase: ['points_increase', 'points_increase+growth_increase', 'points_increase+honor_increase', 'points_increase+growth_increase+honor_increase'],
+  growth_increase: ['growth_increase', 'points_increase+growth_increase', 'growth_increase+honor_increase', 'points_increase+growth_increase+honor_increase'],
+  honor_increase: ['honor_increase', 'points_increase+honor_increase', 'growth_increase+honor_increase', 'points_increase+growth_increase+honor_increase'],
+})
 
 async function actionListAuditLogs(openid, event) {
   const config = await requireAdmin(openid)
@@ -1163,20 +1270,8 @@ async function actionListAuditLogs(openid, event) {
   if (event.actorId) where.actorId = sanitize(event.actorId, 64)
   const changeType = sanitize(event.changeType, 30)
   if (changeType && changeType !== 'all') {
-    if (changeType === 'points_increase') {
-      where.changeType = _.in(['points_increase', 'points_increase+growth_increase'])
-    } else if (changeType === 'growth_increase') {
-      where.changeType = _.in(['growth_increase', 'points_increase+growth_increase'])
-    } else if (changeType === 'honor_increase') {
-      where.changeType = _.in([
-        'honor_increase',
-        'growth_increase+honor_increase',
-        'points_increase+honor_increase',
-        'points_increase+growth_increase+honor_increase',
-      ])
-    } else {
-      where.changeType = changeType
-    }
+    const combinations = AUDIT_CHANGE_TYPES[changeType]
+    where.changeType = combinations ? _.in(combinations) : changeType
   }
   const timeRange = sanitize(event.timeRange, 10)
   if (timeRange === '7d') where.createdAt = _.gte(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
@@ -1232,7 +1327,7 @@ async function actionManualAdjust(openid, event) {
   const reason = sanitize(event.reason, 200)
   if (!reason) throw new Error('原因必填')
   let result = null
-  await db.runTransaction(async t => {
+  await runTransaction(async t => {
     const applied = await applyPoints(t, {
       memberId: member._id,
       growthDelta,
@@ -1282,16 +1377,13 @@ async function actionRedeemPoints(openid, event) {
     if (points <= 0) points = Math.floor(Number(option.points) || 0)
   }
   if (points <= 0) throw new Error('兑换积分必须大于 0')
-  if ((member.points || 0) < points) {
-    throw new Error(`积分不足（当前 ${member.points || 0} 分）`)
-  }
   const templateItem = item ? `${item.title} · ${option.name}` : ''
   const itemName = sanitize(event.item, 100) || templateItem
   if (!itemName) throw new Error('请填写兑换内容')
   const note = sanitize(event.note, 200)
   const reason = itemName + (note ? '，' + note : '')
   let result = null
-  await db.runTransaction(async t => {
+  await runTransaction(async t => {
     const applied = await applyPoints(t, {
       memberId: member._id,
       growthDelta: 0,
@@ -1477,57 +1569,107 @@ async function actionGetEvent(openid, event) {
   })
 }
 
+async function createEventRegistration({ eventId, member, openid, actor, admin }) {
+  return runTransaction(async t => {
+    const counter = await touchGuard(t, 'event', eventId)
+    const ev = await optionalDoc(t.collection('events').doc(eventId))
+    if (!ev) throw new Error('赛事不存在')
+    if (!admin) {
+      if (ev.status !== 'published') throw new Error('该赛事当前不可报名')
+      if (ev.registerStart && ev.registerStart.getTime() > Date.now()) throw new Error('报名尚未开始')
+      if (ev.registerDeadline && ev.registerDeadline.getTime() <= Date.now()) throw new Error('报名已截止')
+    }
+    const identityRef = t.collection('operation_guards').doc(guardId('registration', eventId, member._id))
+    // A fixed identity document supplements the common event fence. Existing random
+    // registration IDs remain intact; the query discovers registrations from before
+    // this release as well. Never silently merge historical duplicate rows.
+    await optionalDoc(identityRef)
+    const existing = await db.collection('event_registrations')
+      .where({ eventId, memberId: member._id, status: 'registered' }).limit(2).get()
+    if (existing.data.length > 1) throw businessError('该会员存在重复有效报名，请先核查历史数据', 'DATA_REPAIR_REQUIRED')
+    if (existing.data.length) throw new Error(admin ? '该会员已报名此赛事' : '你已报名该赛事')
+    const count = await activeRegistrationCount(eventId)
+    if (!admin && ev.capacity && count >= ev.capacity) throw new Error('名额已满')
+    const ts = now()
+    const added = await t.collection('event_registrations').add({
+      data: { eventId, memberId: member._id, status: 'registered',
+        registeredBy: admin ? openid : member._id, source: admin ? 'admin' : 'member', createdAt: ts },
+    })
+    await counter.update({ data: { activeCount: count + 1 } })
+    await identityRef.set({ data: { kind: 'registration', eventId, memberId: member._id, registrationId: added._id, active: true, updatedAt: ts } })
+    if (admin) {
+      await t.collection('audit_logs').add({
+        data: {
+          actorId: openid, actorNickname: actor ? actor.nickname : '',
+          actionType: 'event_roster_add', targetType: 'event_registration', targetId: added._id,
+          targetMemberId: member._id, targetMemberNickname: member.nickname,
+          changeType: 'none', delta: 0, reason: `赛事补录：${ev.title}`, specialFlag: false,
+          metadata: { eventId }, createdAt: ts,
+        },
+      })
+    }
+    return { id: added._id, registrationCount: count + 1 }
+  })
+}
+
+async function releaseEventRegistration({ id, member, openid, actor, admin }) {
+  const initial = await optionalDoc(db.collection('event_registrations').doc(id))
+  if (!initial) throw new Error('报名记录不存在')
+  return runTransaction(async t => {
+    const counter = await touchGuard(t, 'event', initial.eventId)
+    const reg = await optionalDoc(t.collection('event_registrations').doc(id))
+    if (!reg) throw new Error('报名记录不存在')
+    if (reg.eventId !== initial.eventId) throw new Error('报名信息已变化，请刷新重试')
+    if (!admin && reg.memberId !== member._id) throw new Error('只能取消自己的报名')
+    if (reg.status !== 'registered') throw new Error('该报名记录已取消或移除')
+    const ev = await optionalDoc(t.collection('events').doc(reg.eventId))
+    if (!admin) {
+      if (ev && ev.status === 'ended') throw new Error('赛事已结束，无法取消')
+      if (ev && ev.registerDeadline && ev.registerDeadline.getTime() <= Date.now()) throw new Error('报名已截止，无法取消')
+    }
+    const count = await activeRegistrationCount(reg.eventId)
+    if (count < 1) throw businessError('赛事报名计数不一致，请刷新后重试', 'DATA_REPAIR_REQUIRED')
+    const identityRef = t.collection('operation_guards').doc(guardId('registration', reg.eventId, reg.memberId))
+    await optionalDoc(identityRef)
+    // If legacy duplicates exist, cancelling exactly this row releases exactly one
+    // place, and the remaining active row continues to reserve the identity.
+    const others = await db.collection('event_registrations').where({
+      eventId: reg.eventId, memberId: reg.memberId, status: 'registered', _id: _.neq(id),
+    }).limit(1).get()
+    const ts = now()
+    await t.collection('event_registrations').doc(id).update({
+      data: admin ? { status: 'removed', removedAt: ts, removedBy: openid }
+        : { status: 'cancelled', cancelledAt: ts },
+    })
+    await counter.update({ data: { activeCount: count - 1 } })
+    await identityRef.set({ data: { kind: 'registration', eventId: reg.eventId, memberId: reg.memberId,
+      registrationId: others.data.length ? others.data[0]._id : id, active: others.data.length > 0, updatedAt: ts } })
+    if (admin) {
+      const target = await optionalDoc(t.collection('members').doc(reg.memberId))
+      await t.collection('audit_logs').add({
+        data: {
+          actorId: openid, actorNickname: actor ? actor.nickname : '',
+          actionType: 'event_roster_remove', targetType: 'event_registration', targetId: id,
+          targetMemberId: reg.memberId, targetMemberNickname: target ? target.nickname : '',
+          changeType: 'none', delta: 0, reason: ev ? `移除赛事名单：${ev.title}` : '', specialFlag: false,
+          metadata: { eventId: reg.eventId }, createdAt: ts,
+        },
+      })
+    }
+    return { id }
+  })
+}
+
 async function actionRegisterEvent(openid, event) {
   const member = await getMemberByOpenid(openid)
   if (!member) throw new Error('请先登录')
-  const id = sanitize(event.id, 64)
-  const evRes = await db.collection('events').doc(id).get().catch(() => null)
-  if (!evRes || !evRes.data) throw new Error('赛事不存在')
-  const ev = evRes.data
-  if (ev.status !== 'published') throw new Error('该赛事当前不可报名')
-  if (ev.registerStart && ev.registerStart.getTime() > Date.now()) throw new Error('报名尚未开始')
-  if (ev.registerDeadline && ev.registerDeadline.getTime() <= Date.now()) throw new Error('报名已截止')
-  const dup = await db
-    .collection('event_registrations')
-    .where({ eventId: id, memberId: member._id, status: 'registered' })
-    .count()
-  if (dup.total > 0) throw new Error('你已报名该赛事')
-  const count = await activeRegistrationCount(id)
-  if (ev.capacity && count >= ev.capacity) throw new Error('名额已满')
-  const addRes = await db.collection('event_registrations').add({
-    data: {
-      eventId: id,
-      memberId: member._id,
-      status: 'registered',
-      registeredBy: member._id,
-      source: 'member',
-      createdAt: now(),
-    },
-  })
-  return ok({ id: addRes._id, registrationCount: count + 1 })
+  return ok(await createEventRegistration({ eventId: sanitize(event.id, 64), member, openid, admin: false }))
 }
 
 async function actionCancelEventRegistration(openid, event) {
   const member = await getMemberByOpenid(openid)
   if (!member) throw new Error('请先登录')
-  const id = sanitize(event.id, 64)
-  const regRes = await db.collection('event_registrations').doc(id).get().catch(() => null)
-  if (!regRes || !regRes.data) throw new Error('报名记录不存在')
-  const reg = regRes.data
-  if (reg.memberId !== member._id) throw new Error('只能取消自己的报名')
-  if (reg.status !== 'registered') throw new Error('该报名记录已取消或移除')
-  const evRes = await db.collection('events').doc(reg.eventId).get().catch(() => null)
-  const ev = evRes && evRes.data
-  if (ev && ev.status === 'ended') throw new Error('赛事已结束，无法取消')
-  if (ev && ev.registerDeadline && ev.registerDeadline.getTime() <= Date.now()) {
-    throw new Error('报名已截止，无法取消')
-  }
-  const ts = now()
-  await db
-    .collection('event_registrations')
-    .doc(id)
-    .update({ data: { status: 'cancelled', cancelledAt: ts } })
-  return ok({ id })
+  return ok(await releaseEventRegistration({ id: sanitize(event.id, 64), member, openid, admin: false }))
 }
 
 async function actionListMyEventRegistrations(openid) {
@@ -1551,7 +1693,11 @@ async function actionListMyEventRegistrations(openid) {
   const items = []
   for (const r of regs) {
     const ev = events[r.eventId]
-    if (!ev) continue
+    if (!ev || !['published', 'ended'].includes(ev.status)) {
+      items.push({ registrationId: r._id, eventId: r.eventId, title: '赛事暂不可用', cover: '',
+        status: ev ? ev.status : 'unavailable', unavailable: true, createdAt: r.createdAt })
+      continue
+    }
     items.push({
       registrationId: r._id,
       eventId: ev._id,
@@ -1661,33 +1807,25 @@ async function actionDeleteEvent(openid, event) {
   await requireAdmin(openid)
   const actor = await getMemberByOpenid(openid)
   const id = sanitize(event.id, 64)
-  const evRes = await db.collection('events').doc(id).get().catch(() => null)
-  if (!evRes || !evRes.data) throw new Error('赛事不存在')
-  const ev = evRes.data
-  if (ev.status !== 'draft') throw new Error('仅草稿状态可删除')
-  await db
-    .collection('event_registrations')
-    .where({ eventId: id })
-    .remove()
-    .catch(() => {})
-  await db.collection('events').doc(id).remove()
-  await db.collection('audit_logs').add({
-    data: {
-      actorId: openid,
-      actorNickname: actor ? actor.nickname : '',
-      actionType: 'event_delete',
-      targetType: 'event',
-      targetId: id,
-      targetMemberId: '',
-      targetMemberNickname: '',
-      changeType: 'none',
-      delta: 0,
-      reason: ev.title,
-      specialFlag: false,
-      metadata: {},
-      createdAt: now(),
-    },
+  await runTransaction(async t => {
+    const counter = await touchGuard(t, 'event', id)
+    const ev = await optionalDoc(t.collection('events').doc(id))
+    if (!ev) throw new Error('赛事不存在')
+    if (ev.status !== 'draft') throw new Error('仅草稿状态可删除')
+    await t.collection('events').doc(id).remove()
+    await counter.update({ data: { deleted: true, activeCount: 0 } })
+    await t.collection('audit_logs').add({
+      data: {
+        actorId: openid, actorNickname: actor ? actor.nickname : '',
+        actionType: 'event_delete', targetType: 'event', targetId: id,
+        targetMemberId: '', targetMemberNickname: '', changeType: 'none', delta: 0,
+        reason: ev.title, specialFlag: false, metadata: {}, createdAt: now(),
+      },
+    })
   })
+  // Removed event documents block all subsequent registrations. Cleanup remains
+  // best effort, as before; orphan rows render as unavailable without draft data.
+  await db.collection('event_registrations').where({ eventId: id }).remove().catch(() => {})
   return ok({ id })
 }
 
@@ -1733,83 +1871,15 @@ async function actionListEventRoster(openid, event) {
 async function actionAddEventRegistration(openid, event) {
   await requireAdmin(openid)
   const actor = await getMemberByOpenid(openid)
-  const eventId = sanitize(event.eventId, 64)
-  const memberId = sanitize(event.memberId, 64)
-  const evRes = await db.collection('events').doc(eventId).get().catch(() => null)
-  if (!evRes || !evRes.data) throw new Error('赛事不存在')
-  const ev = evRes.data
-  const member = await getMemberById(memberId)
+  const member = await getMemberById(sanitize(event.memberId, 64))
   if (!member) throw new Error('会员不存在')
-  const dup = await db
-    .collection('event_registrations')
-    .where({ eventId, memberId, status: 'registered' })
-    .count()
-  if (dup.total > 0) throw new Error('该会员已报名此赛事')
-  const ts = now()
-  const addRes = await db.collection('event_registrations').add({
-    data: {
-      eventId,
-      memberId,
-      status: 'registered',
-      registeredBy: openid,
-      source: 'admin',
-      createdAt: ts,
-    },
-  })
-  await db.collection('audit_logs').add({
-    data: {
-      actorId: openid,
-      actorNickname: actor ? actor.nickname : '',
-      actionType: 'event_roster_add',
-      targetType: 'event_registration',
-      targetId: addRes._id,
-      targetMemberId: memberId,
-      targetMemberNickname: member.nickname,
-      changeType: 'none',
-      delta: 0,
-      reason: `赛事补录：${ev.title}`,
-      specialFlag: false,
-      metadata: { eventId },
-      createdAt: ts,
-    },
-  })
-  return ok({ id: addRes._id })
+  return ok(await createEventRegistration({ eventId: sanitize(event.eventId, 64), member, openid, actor, admin: true }))
 }
 
 async function actionRemoveEventRegistration(openid, event) {
   await requireAdmin(openid)
   const actor = await getMemberByOpenid(openid)
-  const id = sanitize(event.id, 64)
-  const regRes = await db.collection('event_registrations').doc(id).get().catch(() => null)
-  if (!regRes || !regRes.data) throw new Error('报名记录不存在')
-  const reg = regRes.data
-  if (reg.status !== 'registered') throw new Error('该报名记录已移除或取消')
-  const evRes = await db.collection('events').doc(reg.eventId).get().catch(() => null)
-  const ev = evRes && evRes.data
-  const member = await getMemberById(reg.memberId)
-  const ts = now()
-  await db
-    .collection('event_registrations')
-    .doc(id)
-    .update({ data: { status: 'removed', removedAt: ts, removedBy: openid } })
-  await db.collection('audit_logs').add({
-    data: {
-      actorId: openid,
-      actorNickname: actor ? actor.nickname : '',
-      actionType: 'event_roster_remove',
-      targetType: 'event_registration',
-      targetId: id,
-      targetMemberId: reg.memberId,
-      targetMemberNickname: member ? member.nickname : '',
-      changeType: 'none',
-      delta: 0,
-      reason: ev ? `移除赛事名单：${ev.title}` : '',
-      specialFlag: false,
-      metadata: { eventId: reg.eventId },
-      createdAt: ts,
-    },
-  })
-  return ok({ id })
+  return ok(await releaseEventRegistration({ id: sanitize(event.id, 64), openid, actor, admin: true }))
 }
 
 async function actionAwardEventHonor(openid, event) {
@@ -1850,8 +1920,8 @@ async function actionAwardEventHonor(openid, event) {
   })
   const note = sanitize(event.note, 200)
   const reason = `赛事发放：${ev.title}` + (note ? '，' + note : '')
-  let awarded = []
-  await db.runTransaction(async t => {
+  const awarded = await runTransaction(async t => {
+    const results = []
     for (const it of normalized) {
       const member = members[it.memberId]
       const applied = await applyHonor(t, {
@@ -1871,8 +1941,9 @@ async function actionAwardEventHonor(openid, event) {
         reason,
         specialFlag: false,
       })
-      awarded.push({ memberId: it.memberId, honorAfter: applied.honorAfter })
+      results.push({ memberId: it.memberId, honorAfter: applied.honorAfter })
     }
+    return results
   })
   return ok({ count: awarded.length, awarded, eventId })
 }
@@ -2060,27 +2131,31 @@ async function actionGetSuperConsole(openid) {
 
 // 保存普通管理员名单（超级管理员名单不可通过页面修改）
 async function actionSaveAdmins(openid, event) {
-  const config = await requireSuperAdmin(openid)
+  await requireSuperAdmin(openid)
   const actor = await getMemberByOpenid(openid)
   const admins = sanitizeStringList(event.admins, 50, 64)
   const ts = now()
-  await db.collection('configs').doc('default').update({ data: { admins, updatedAt: ts } })
-  await db.collection('audit_logs').add({
-    data: {
-      actorId: openid,
-      actorNickname: actor ? actor.nickname : '',
-      actionType: 'admin_list_update',
-      targetType: 'config',
-      targetId: 'default',
-      targetMemberId: '',
-      targetMemberNickname: '',
-      changeType: 'none',
-      delta: 0,
-      reason: '',
-      specialFlag: false,
-      metadata: { admins, superAdmins: config.superAdmins || [] },
-      createdAt: ts,
-    },
+  await runTransaction(async t => {
+    const latest = await t.collection('configs').doc('default').get()
+    if (!(latest.data.superAdmins || []).includes(openid)) throw new Error('需要超级管理员权限')
+    await t.collection('configs').doc('default').update({ data: { admins, updatedAt: ts } })
+    await t.collection('audit_logs').add({
+      data: {
+        actorId: openid,
+        actorNickname: actor ? actor.nickname : '',
+        actionType: 'admin_list_update',
+        targetType: 'config',
+        targetId: 'default',
+        targetMemberId: '',
+        targetMemberNickname: '',
+        changeType: 'none',
+        delta: 0,
+        reason: '',
+        specialFlag: false,
+        metadata: { admins, superAdmins: latest.data.superAdmins || [] },
+        createdAt: ts,
+      },
+    })
   })
   return ok({ admins })
 }
@@ -2093,23 +2168,27 @@ async function actionSaveSuperConfig(openid, event) {
   const keys = Object.keys(patch)
   if (!keys.length) throw new Error('没有需要更新的配置')
   const ts = now()
-  await db.collection('configs').doc('default').update({ data: { ...patch, updatedAt: ts } })
-  await db.collection('audit_logs').add({
-    data: {
-      actorId: openid,
-      actorNickname: actor ? actor.nickname : '',
-      actionType: 'config_update',
-      targetType: 'config',
-      targetId: 'default',
-      targetMemberId: '',
-      targetMemberNickname: '',
-      changeType: 'none',
-      delta: 0,
-      reason: '',
-      specialFlag: false,
-      metadata: { keys },
-      createdAt: ts,
-    },
+  await runTransaction(async t => {
+    const latest = await t.collection('configs').doc('default').get()
+    if (!(latest.data.superAdmins || []).includes(openid)) throw new Error('需要超级管理员权限')
+    await t.collection('configs').doc('default').update({ data: { ...patch, updatedAt: ts } })
+    await t.collection('audit_logs').add({
+      data: {
+        actorId: openid,
+        actorNickname: actor ? actor.nickname : '',
+        actionType: 'config_update',
+        targetType: 'config',
+        targetId: 'default',
+        targetMemberId: '',
+        targetMemberNickname: '',
+        changeType: 'none',
+        delta: 0,
+        reason: '',
+        specialFlag: false,
+        metadata: { keys },
+        createdAt: ts,
+      },
+    })
   })
   return ok({ keys })
 }
@@ -2218,9 +2297,9 @@ exports.main = async (event = {}) => {
       try {
         return await dispatch()
       } catch (retryError) {
-        return fail(retryError.message || '服务器错误')
+        return fail(retryError.message || '服务器错误', retryError.code)
       }
     }
-    return fail(e.message || '服务器错误')
+    return fail(e.message || '服务器错误', e.code)
   }
 }

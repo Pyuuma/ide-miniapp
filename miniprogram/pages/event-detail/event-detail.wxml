@@ -18,7 +18,7 @@
 
     <view wx:if="{{event.status === 'ended'}}" class="empty">该赛事已结束</view>
     <button
-      wx:elif="{{myRegistrationId}}"
+      wx:elif="{{myRegistrationId && registerState !== 'closed'}}"
       class="btn-plain submit"
       bindtap="onCancel"
       disabled="{{submitting}}"
@@ -32,7 +32,7 @@
       wx:elif="{{registerState === 'closed'}}"
       class="btn-plain submit"
       disabled
-    >报名已截止</button>
+    >{{myRegistrationId ? '已报名，取消已截止' : '报名已截止'}}</button>
     <button
       wx:else
       class="btn-primary submit"

@@ -50,6 +50,7 @@ Page({
   },
 
   onScan() {
+    if (this.data.submitting) return
     wx.scanCode({
       scanType: ['qrCode'],
       success: res => {
@@ -60,6 +61,7 @@ Page({
   },
 
   async applyToken(token: string) {
+    if (this.data.submitting) return
     wx.showLoading({ title: '校验中' })
     try {
       const res = await api.verifyMemberCode(token)
@@ -100,6 +102,7 @@ Page({
   },
 
   async pickMember(e: any) {
+    if (this.data.submitting) return
     const memberId = e.currentTarget.dataset.id as string
     wx.showLoading({ title: '加载中' })
     try {
@@ -154,7 +157,7 @@ Page({
     if (overLimit && !this.data.showSpecialReason) {
       this.setData({ showSpecialReason: true })
       wx.showModal({
-        title: '本周录入已达上限',
+        title: `${this.data.usage.period === 'month' ? '本月' : '本周'}录入已达上限`,
         content: '继续录入将作为特别录入处理，必须填写原因并计入审计记录。',
         showCancel: false,
       })
@@ -164,6 +167,7 @@ Page({
       wx.showToast({ title: '请填写特别录入原因', icon: 'none' })
       return
     }
+    const memberId = this.data.member.id
     this.setData({ submitting: true })
     try {
       const amount = this.data.amount.trim() === '' ? undefined : Number(this.data.amount)
@@ -186,7 +190,21 @@ Page({
         showSpecialReason: false,
       })
     } catch (e: any) {
-      wx.showToast({ title: e.message || '录入失败', icon: 'none' })
+      if (e.code === 'CONSUMPTION_LIMIT_REACHED') {
+        // 不重置表单：保留档位、金额、备注，让管理员就地补充原因。
+        this.setData({ showSpecialReason: true })
+        try {
+          const res = await api.memberUsage(memberId)
+          if (this.data.member && this.data.member.id === memberId) {
+            this.setData({ member: res.member, usage: res.usage })
+          }
+        } catch (_) {
+          // 刷新失败时仍保留原因入口，后端会在下一次提交重新校验。
+        }
+        wx.showToast({ title: '额度已满，请补充特别录入原因', icon: 'none' })
+      } else {
+        wx.showToast({ title: e.message || '录入失败', icon: 'none' })
+      }
     } finally {
       this.setData({ submitting: false })
     }

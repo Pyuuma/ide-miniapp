@@ -36,7 +36,7 @@
         <view class="level">{{member.levelName}}</view>
       </view>
       <view class="usage {{usage.used >= usage.max ? 'over' : ''}}">
-        本周已录入 {{usage.used}} / {{usage.max}} 次{{usage.used >= usage.max ? '（已达上限）' : ''}}
+        {{usage.period === 'month' ? '本月' : '本周'}}已录入 {{usage.used}} / {{usage.max}} 次{{usage.used >= usage.max ? '（已达上限）' : ''}}
       </view>
     </view>
 

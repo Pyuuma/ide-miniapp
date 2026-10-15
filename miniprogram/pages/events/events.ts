@@ -62,17 +62,21 @@ Page({
           : `${e.registrationCount} 人报名`,
         ended: e.status === 'ended',
       }))
-      const myItems = mineRes.items.map((it: EventRegistrationInfo) => ({
-        registrationId: it.registrationId,
-        eventId: it.eventId,
-        title: it.title,
-        cover: it.cover,
-        statusText: it.status === 'ended' ? '已结束' : '已报名',
-        deadlineText: it.registerDeadline ? `截止 ${formatDate(it.registerDeadline)}` : '报名中',
-        countText: it.capacity
-          ? `已报名 ${it.registrationCount}/${it.capacity}`
-          : `${it.registrationCount} 人报名`,
-      }))
+      const myItems = mineRes.items.map((it: EventRegistrationInfo) => {
+        const unavailable = !!it.unavailable || ['published', 'ended'].indexOf(it.status) < 0
+        return {
+          registrationId: it.registrationId,
+          eventId: it.eventId,
+          unavailable,
+          title: unavailable ? '赛事暂不可用' : it.title,
+          cover: unavailable ? '' : it.cover,
+          statusText: unavailable ? '暂不可用' : it.status === 'ended' ? '已结束' : '已报名',
+          deadlineText: unavailable ? '请联系管理员了解报名安排' : it.registerDeadline ? `截止 ${formatDate(it.registerDeadline)}` : '报名中',
+          countText: unavailable ? '' : it.capacity
+            ? `已报名 ${it.registrationCount}/${it.capacity}`
+            : `${it.registrationCount} 人报名`,
+        }
+      })
       this.setData({ items, myItems })
     } catch (e: any) {
       wx.showToast({ title: e.message || '加载失败', icon: 'none' })
@@ -82,6 +86,7 @@ Page({
   },
 
   onTapItem(e: any) {
+    if (e.currentTarget.dataset.unavailable) return
     wx.navigateTo({ url: `/pages/event-detail/event-detail?id=${e.currentTarget.dataset.id}` })
   },
 })

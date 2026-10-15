@@ -1,3 +1,4 @@
 {
-  "navigationBarTitleText": "评论审核"
+  "navigationBarTitleText": "评论审核",
+  "enablePullDownRefresh": true
 }

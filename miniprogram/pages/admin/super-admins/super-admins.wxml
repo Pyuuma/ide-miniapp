@@ -1,0 +1,69 @@
+<view class="page">
+  <view class="card header">
+    <view class="title">管理员名单</view>
+    <view class="muted">普通管理员名单单独保存。超级管理员名单只读，请在云开发控制台的 <text class="mono">configs/default</text> 文档中修改 <text class="mono">superAdmins</text>。</view>
+    <view class="page-link" bindtap="openConfig">规则配置 →</view>
+  </view>
+  <view wx:if="{{loading}}" class="card muted">加载中…</view>
+  <view wx:elif="{{!loaded}}" class="card">
+    <view class="muted">管理员名单加载失败，请重新加载后编辑。</view>
+    <button class="btn-plain save" bindtap="load">重新加载</button>
+  </view>
+  <view wx:else class="editor {{savingAdmins ? 'is-saving' : ''}}">
+    <view class="card">
+      <view class="section-title">超级管理员（只读）</view>
+      <view wx:for="{{superAdmins}}" wx:key="openid" class="row" data-openid="{{item.openid}}" bindtap="copyOpenid">
+        <view class="row-main">
+          <view class="row-title">{{item.label}}</view>
+          <view class="muted mono">{{item.openid}}</view>
+        </view>
+        <text class="copy">复制</text>
+      </view>
+      <view wx:if="{{!superAdmins.length}}" class="muted">尚未配置超级管理员</view>
+    </view>
+
+    <view class="card">
+      <view class="section-title">管理员名单</view>
+      <view wx:for="{{admins}}" wx:key="openid" class="row">
+        <view class="row-main">
+          <view class="row-title">{{item.label}}</view>
+          <view class="muted mono">{{item.openid}}</view>
+        </view>
+        <view class="remove-btn" data-index="{{index}}" catchtap="removeAdmin">移除</view>
+      </view>
+      <view wx:if="{{!admins.length}}" class="muted">暂未配置普通管理员</view>
+      <view class="search-row">
+        <input
+          disabled="{{savingAdmins}}"
+          class="input search-input"
+          value="{{adminQuery}}"
+          placeholder="账号 ID / 账号名 / openid 模糊搜索"
+          confirm-type="search"
+          bindinput="onAdminQueryInput"
+          bindconfirm="searchAdmins"
+        />
+        <button class="btn-plain short" bindtap="searchAdmins" disabled="{{searchingAdmin || savingAdmins}}">搜索</button>
+      </view>
+      <view wx:if="{{showCandidates}}" class="candidates">
+        <view
+          wx:for="{{candidates}}"
+          wx:key="openid"
+          class="candidate"
+          data-index="{{index}}"
+          bindtap="pickCandidate"
+        >
+          <view class="candidate-main">
+            <view class="row-title">{{item.nickname || '未命名'}}<text class="muted"> @{{item.accountName || '-'}}</text></view>
+            <view class="muted mono">{{item.openid}}</view>
+          </view>
+          <text class="candidate-tag">{{item.isSuperAdmin ? '超级管理员' : item.isAdmin ? '已是管理员' : '选择'}}</text>
+        </view>
+        <view wx:if="{{!candidates.length}}" class="muted candidate-empty">没有匹配的会员</view>
+      </view>
+      <view class="hint">输入关键词搜索后，从下拉结果中选择会员加入名单；选择后记得保存才会生效。</view>
+      <view wx:if="{{dirty}}" class="unsaved">有未保存的名单修改</view>
+      <button class="btn-primary save" bindtap="onSaveAdmins" disabled="{{savingAdmins || !dirty}}">保存管理员名单</button>
+    </view>
+
+  </view>
+</view>

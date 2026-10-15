@@ -1,0 +1,152 @@
+<view class="page">
+  <view class="card header">
+    <view class="title">规则配置</view>
+    <view class="muted">修改后请保存；保存前会展示配置差异。</view>
+    <view class="page-link" bindtap="openAdmins">管理员名单 →</view>
+  </view>
+  <view wx:if="{{loading}}" class="card muted">加载中…</view>
+  <view wx:elif="{{!loaded}}" class="card">
+    <view class="muted">规则配置加载失败，请重新加载后编辑。</view>
+    <button class="btn-plain save" bindtap="load">重新加载</button>
+  </view>
+  <view wx:else class="editor {{savingConfig ? 'is-saving' : ''}}">
+    <view class="card">
+      <view class="section-title">门店信息</view>
+      <view class="field-label">店铺名称</view>
+      <input disabled="{{savingConfig}}" class="input" value="{{storeName}}" maxlength="30" bindinput="onStoreNameInput" />
+      <view class="field-label">联系方式（兑换时展示给会员）</view>
+      <input disabled="{{savingConfig}}" class="input" value="{{storeContact}}" maxlength="50" bindinput="onStoreContactInput" />
+    </view>
+
+    <view class="card">
+      <view class="section-title">消费档位</view>
+      <view wx:for="{{tiers}}" wx:key="key" class="row-edit">
+        <input disabled="{{savingConfig}}" class="input flex" value="{{item.name}}" placeholder="档位名称" data-index="{{index}}" bindinput="onTierNameInput" />
+        <input disabled="{{savingConfig}}" class="input num" type="number" value="{{item.points}}" placeholder="积分" data-index="{{index}}" bindinput="onTierPointsInput" />
+        <input disabled="{{savingConfig}}" class="input num" type="number" value="{{item.defaultAmount}}" placeholder="默认金额" data-index="{{index}}" bindinput="onTierAmountInput" />
+        <view class="remove" data-index="{{index}}" catchtap="removeTier">×</view>
+      </view>
+      <view class="hint">三项依次为：档位名称 / 积分 / 默认金额</view>
+      <button class="btn-plain small add" bindtap="addTier">＋ 添加档位</button>
+    </view>
+
+    <view class="card">
+      <view class="section-title">消费次数限制</view>
+      <view class="field-label">周期</view>
+      <picker disabled="{{savingConfig}}" mode="selector" range="{{periodOptions}}" range-key="name" value="{{periodIndex}}" bindchange="onPeriodChange">
+        <view class="picker">{{periodOptions[periodIndex].name}}</view>
+      </picker>
+      <view class="field-label">重置日（按周生效；按月固定每月 1 日）</view>
+      <picker disabled="{{savingConfig}}" mode="selector" range="{{weekOptions}}" range-key="label" value="{{resetDayIndex}}" bindchange="onResetDayChange">
+        <view class="picker">{{weekOptions[resetDayIndex].label}}</view>
+      </picker>
+      <view class="field-label">重置小时（0–23）</view>
+      <input disabled="{{savingConfig}}" class="input" type="number" value="{{resetHour}}" bindinput="onResetHourInput" />
+      <view class="field-label">周期内最大次数</view>
+      <input disabled="{{savingConfig}}" class="input" type="number" value="{{maxCount}}" bindinput="onMaxCountInput" />
+    </view>
+
+    <view class="card">
+      <view class="section-title">会员日</view>
+      <view class="switch-row">
+        <text>启用会员日勾选项</text>
+        <switch disabled="{{savingConfig}}" checked="{{memberDayEnabled}}" color="#1a1a1a" bindchange="onMemberDayToggle" />
+      </view>
+      <view class="field-label">名称（显示在录入页）</view>
+      <input disabled="{{savingConfig}}" class="input" value="{{memberDayLabel}}" maxlength="20" bindinput="onMemberDayLabelInput" />
+      <view class="field-label">额外分（勾选后档位分外再加）</view>
+      <input disabled="{{savingConfig}}" class="input" type="number" value="{{memberDayPoints}}" bindinput="onMemberDayPointsInput" />
+      <view class="field-label">默认勾选的星期（可多选）</view>
+      <view class="chips">
+        <view
+          wx:for="{{weekdays}}"
+          wx:key="value"
+          class="chip {{item.on ? 'on' : ''}}"
+          data-value="{{item.value}}"
+          bindtap="toggleWeekday"
+        >{{item.label}}</view>
+      </view>
+    </view>
+
+    <view class="card">
+      <view class="section-title">评论加分</view>
+      <view wx:for="{{reviews}}" wx:key="key" class="review-row">
+        <view class="row-edit">
+          <input
+            disabled="{{savingConfig}}"
+            class="input flex"
+            value="{{item.name}}"
+            maxlength="20"
+            placeholder="名称，如：小红书"
+            data-index="{{index}}"
+            bindinput="onReviewNameInput"
+          />
+          <input disabled="{{savingConfig}}" class="input num" type="number" value="{{item.points}}" placeholder="积分" data-index="{{index}}" bindinput="onReviewPointsInput" />
+          <input disabled="{{savingConfig}}" class="input num" type="number" value="{{item.maxCount}}" placeholder="次数" data-index="{{index}}" bindinput="onReviewMaxInput" />
+          <view class="remove" data-index="{{index}}" catchtap="removeReview">×</view>
+        </view>
+        <view class="chips">
+          <view
+            class="chip {{item.period === 'week' ? 'on' : ''}}"
+            data-index="{{index}}"
+            data-period="week"
+            bindtap="onReviewPeriodTap"
+          >按周</view>
+          <view
+            class="chip {{item.period === 'month' ? 'on' : ''}}"
+            data-index="{{index}}"
+            data-period="month"
+            bindtap="onReviewPeriodTap"
+          >按月</view>
+        </view>
+      </view>
+      <view class="hint">三项依次为：名称 / 每次加分 / 周期内最大次数；周期用下方按钮切换</view>
+      <button class="btn-plain small add" bindtap="addReview">＋ 添加加分项</button>
+    </view>
+
+    <view class="card">
+      <view class="section-title">等级门槛（按成长值）</view>
+      <view wx:for="{{levels}}" wx:key="key" class="row-edit">
+        <input disabled="{{savingConfig}}" class="input flex" value="{{item.name}}" placeholder="等级名称" data-index="{{index}}" bindinput="onLevelNameInput" />
+        <input disabled="{{savingConfig}}" class="input num" type="number" value="{{item.minPoints}}" placeholder="成长值门槛" data-index="{{index}}" bindinput="onLevelMinInput" />
+        <view class="remove" data-index="{{index}}" catchtap="removeLevel">×</view>
+      </view>
+      <button class="btn-plain small add" bindtap="addLevel">＋ 添加等级</button>
+    </view>
+
+    <view class="card">
+      <view class="section-title">排行榜</view>
+      <view class="field-label">榜首展示人数</view>
+      <input disabled="{{savingConfig}}" class="input" type="number" value="{{topCount}}" bindinput="onTopCountInput" />
+      <view class="field-label">自己前后各展示几名</view>
+      <input disabled="{{savingConfig}}" class="input" type="number" value="{{aroundCount}}" bindinput="onAroundCountInput" />
+    </view>
+
+    <view class="card">
+      <view class="section-title">隐私政策文案</view>
+      <textarea disabled="{{savingConfig}}" class="textarea privacy" value="{{privacyText}}" maxlength="5000" bindinput="onPrivacyInput"></textarea>
+      <view class="hint">支持占位符：用双花括号包住 storeName 与 contact，下发时会自动替换为店铺名称与联系方式。</view>
+    </view>
+
+    <view class="save-bar">
+      <view wx:if="{{dirty}}" class="unsaved">有未保存的规则修改</view>
+      <button class="btn-primary save-main" bindtap="onSaveConfig" disabled="{{savingConfig || !dirty}}">保存规则配置</button>
+    </view>
+
+    <view wx:if="{{showDiff}}" class="mask" bindtap="closeDiff">
+      <view class="diff-panel" catchtap="noop">
+        <view class="diff-title">确认保存 {{diffLines.length}} 项修改？</view>
+        <scroll-view class="diff-scroll" scroll-y>
+          <view wx:for="{{diffLines}}" wx:key="*this" class="diff-line">
+            <text class="diff-index">{{index + 1}}.</text>
+            <text class="diff-text">{{item}}</text>
+          </view>
+        </scroll-view>
+        <view class="diff-actions">
+          <button class="btn-plain diff-btn" bindtap="closeDiff">再看看</button>
+          <button class="btn-primary diff-btn" bindtap="confirmSave" disabled="{{savingConfig}}">确认保存</button>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

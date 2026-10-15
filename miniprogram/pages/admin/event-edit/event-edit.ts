@@ -157,18 +157,34 @@ Page({
       wx.showToast({ title: '请填写赛事说明', icon: 'none' })
       return
     }
+    const startDate = this.data.registerStartDate
+    const startTime = this.data.registerStartTime
+    const endDate = this.data.deadlineDate
+    const endTime = this.data.deadlineTime
+    if (!!startDate !== !!startTime) {
+      wx.showToast({ title: startDate ? '请补充报名开始时间' : '请补充报名开始日期', icon: 'none' })
+      return
+    }
+    if (!!endDate !== !!endTime) {
+      wx.showToast({ title: endDate ? '请补充报名截止时间' : '请补充报名截止日期', icon: 'none' })
+      return
+    }
+    const registerStart = startDate ? `${startDate}T${startTime}:00+08:00` : ''
+    const deadline = endDate ? `${endDate}T${endTime}:00+08:00` : ''
+    if ((registerStart && !Number.isFinite(Date.parse(registerStart))) || (deadline && !Number.isFinite(Date.parse(deadline)))) {
+      wx.showToast({ title: '报名日期或时间无效', icon: 'none' })
+      return
+    }
+    if (registerStart && deadline && Date.parse(registerStart) >= Date.parse(deadline)) {
+      wx.showToast({ title: '报名开始时间须早于截止时间', icon: 'none' })
+      return
+    }
     this.setData({ saving: true })
     wx.showLoading({ title: '保存中' })
     try {
       const tempPaths = this.data.images.filter(p => !p.startsWith('cloud://'))
       const uploaded = tempPaths.length ? await uploadImages('events', tempPaths) : []
       const images = this.data.images.map(p => (p.startsWith('cloud://') ? p : uploaded.shift() || p))
-      const deadline = this.data.deadlineDate && this.data.deadlineTime
-        ? `${this.data.deadlineDate}T${this.data.deadlineTime}:00+08:00`
-        : ''
-      const registerStart = this.data.registerStartDate && this.data.registerStartTime
-        ? `${this.data.registerStartDate}T${this.data.registerStartTime}:00+08:00`
-        : ''
       await api.saveEvent({
         id: this.data.id || undefined,
         title: this.data.title,

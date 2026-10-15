@@ -34,6 +34,18 @@ export interface ConsumptionUsage {
   period: string
 }
 
+export interface PaginationOptions {
+  page?: number
+  pageSize?: number
+}
+
+export interface PaginatedResult<T> {
+  items: T[]
+  total: number
+  page: number
+  pageSize: number
+}
+
 export interface StoreConfig {
   storeInfo: {
     name: string
@@ -147,10 +159,11 @@ export interface EventRegistrationInfo {
   eventId: string
   title: string
   cover: string
-  status: EventInfo['status']
+  status: EventInfo['status'] | 'unavailable'
+  unavailable?: boolean
   registerDeadline?: Date | null
   capacity?: number | null
-  registrationCount: number
+  registrationCount?: number
   createdAt?: Date
 }
 
@@ -289,8 +302,19 @@ export function callApi<T>(action: string, data: Record<string, unknown> = {}): 
     })
 }
 
+let pendingLogin: Promise<Session> | null = null
+
+function login(): Promise<Session> {
+  if (!pendingLogin) {
+    pendingLogin = callApi<Session>('login').finally(() => {
+      pendingLogin = null
+    })
+  }
+  return pendingLogin
+}
+
 export const api = {
-  login: () => callApi<Session>('login'),
+  login,
   renameAccountName: (accountName: string) =>
     callApi<{ member: MemberInfo }>('renameAccountName', { accountName }),
   updateProfile: (data: { nickname?: string; signature?: string; avatar?: string }) =>
@@ -324,8 +348,8 @@ export const api = {
     callApi<{ id: string }>('submitReview', data),
   listMyReviews: () =>
     callApi<{ items: any[] }>('listMyReviews'),
-  listReviewSubmissions: (status: string) =>
-    callApi<{ items: any[] }>('listReviewSubmissions', { status }),
+  listReviewSubmissions: (status: string, options: PaginationOptions = {}) =>
+    callApi<PaginatedResult<any>>('listReviewSubmissions', { ...options, status }),
   reviewAction: (data: { id: string; subAction: 'approve' | 'reject'; reason?: string; specialReason?: string }) =>
     callApi<{ id: string }>('reviewAction', data),
   listPointEntries: (data: { page?: number; pageSize?: number; sourceType?: string }) =>
@@ -337,6 +361,7 @@ export const api = {
       points: number
       growth: number
       honor: number
+      level: string
       levelName: string
     }>(
       'listPointEntries',
@@ -386,6 +411,7 @@ export const api = {
       points: number
       growth: number
       honor: number
+      level: string
       levelName: string
     }>('listHonorEntries', data),
   listEvents: () => callApi<{ items: EventInfo[] }>('listEvents'),

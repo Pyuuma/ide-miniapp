@@ -23,8 +23,8 @@ Page({
     }
     this.setData({ loading: true, isSuperAdmin: !!session.isSuperAdmin })
     try {
-      const res = await api.listReviewSubmissions('pending')
-      this.setData({ pendingCount: res.items.length })
+      const res = await api.listReviewSubmissions('pending', { page: 1, pageSize: 1 })
+      this.setData({ pendingCount: res.total })
     } catch (e: any) {
       wx.showToast({ title: e.message || '加载失败', icon: 'none' })
     } finally {

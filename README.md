@@ -84,3 +84,5 @@ docs/                     术语表、设计、ADR
 - 动态会员码 60 秒过期，内容为服务端签发的随机 token；离线时提示使用账号名兜底。
 - 隐私政策页文案来自后端配置并按 `{{storeName}}`、`{{contact}}` 占位替换后下发，前端不做替换。
 - 常用操作：`npm install` 安装开发依赖，`npm run typecheck`（等价 `npx tsc --noEmit -p tsconfig.json`）做类型检查。
+- 回归验证：`npm test`；并发修复的索引核查、停写切换和云端验证要求见 [上线前置条件](docs/deployment-concurrency.md)。
+- 超级管理台的「管理员名单」与「规则配置」已拆成独立页面，各自保存，规则保存保留差异确认。

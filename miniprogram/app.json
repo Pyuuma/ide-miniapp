@@ -22,7 +22,9 @@
     "pages/admin/event-roster/event-roster",
     "pages/admin/item-list/item-list",
     "pages/admin/item-edit/item-edit",
-    "pages/admin/super/super"
+    "pages/admin/super/super",
+    "pages/admin/super-admins/super-admins",
+    "pages/admin/super-config/super-config"
   ],
   "window": {
     "navigationBarTextStyle": "black",

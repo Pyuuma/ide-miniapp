@@ -3,6 +3,7 @@
   "version": "1.1.0",
   "description": "桌游店会员小程序（微信云开发）",
   "scripts": {
+    "test": "node --test tests/*.test.cjs",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "keywords": [],

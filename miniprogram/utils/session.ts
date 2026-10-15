@@ -23,6 +23,24 @@ export function updateMember(member: MemberInfo): Session | null {
   return session
 }
 
+// 只合并余额和等级，保留用户正在编辑或已更新的个人资料。
+export function updateMemberBalances(
+  balances: Pick<MemberInfo, 'points' | 'growth' | 'honor' | 'level' | 'levelName'>
+): Session | null {
+  const session = getSession()
+  if (!session) return null
+  session.member = {
+    ...session.member,
+    points: balances.points,
+    growth: balances.growth,
+    honor: balances.honor,
+    level: balances.level,
+    levelName: balances.levelName,
+  }
+  setSession(session)
+  return session
+}
+
 export function clearSession(): void {
   wx.removeStorageSync(SESSION_KEY)
 }

@@ -34,6 +34,7 @@
         wx:key="registrationId"
         class="card event"
         data-id="{{item.eventId}}"
+        data-unavailable="{{item.unavailable}}"
         bindtap="onTapItem"
       >
         <image wx:if="{{item.cover}}" class="cover" src="{{item.cover}}" mode="aspectFill"></image>
@@ -42,9 +43,9 @@
             <text class="title">{{item.title}}</text>
             <text class="tag">{{item.statusText}}</text>
           </view>
-          <view class="muted meta">{{item.deadlineText}} · {{item.countText}}</view>
+          <view class="muted meta">{{item.deadlineText}}{{item.countText ? ' · ' + item.countText : ''}}</view>
         </view>
-        <text class="arrow">›</text>
+        <text wx:if="{{!item.unavailable}}" class="arrow">›</text>
       </view>
     </view>
     <view wx:else class="empty-block">

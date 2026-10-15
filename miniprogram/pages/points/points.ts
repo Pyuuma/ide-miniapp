@@ -1,5 +1,5 @@
 import { api, HonorEntry, PointEntry } from '../../utils/api'
-import { getSession, setSession } from '../../utils/session'
+import { updateMemberBalances } from '../../utils/session'
 import { formatDateTime } from '../../utils/format'
 import { syncTabBar } from '../../utils/tabbar'
 
@@ -51,13 +51,21 @@ Page({
     honorLoading: false,
   },
 
+  pointsRequest: 0,
+  honorRequest: 0,
+  balanceRequest: 0,
+
   onShow() {
     syncTabBar(this)
-    this.load(true)
+    this.refreshCurrentTab()
+  },
+
+  refreshCurrentTab() {
+    return this.data.tab === 'honor' ? this.loadHonor(true) : this.load(true)
   },
 
   onPullDownRefresh() {
-    Promise.all([this.load(true), this.loadHonor(true)]).finally(() => wx.stopPullDownRefresh())
+    this.refreshCurrentTab().finally(() => wx.stopPullDownRefresh())
   },
 
   onReachBottom() {
@@ -70,13 +78,14 @@ Page({
 
   switchTab(e: any) {
     const tab = e.currentTarget.dataset.tab as 'points' | 'honor'
-    this.setData({ tab }, () => {
-      if (tab === 'honor' && !this.data.honorItems.length) this.loadHonor(true)
-    })
+    if (tab === this.data.tab) return
+    this.setData({ tab }, () => this.refreshCurrentTab())
   },
 
   async load(reset: boolean) {
-    if (this.data.loading) return
+    if (this.data.loading && !reset) return
+    const request = ++this.pointsRequest
+    const balanceRequest = ++this.balanceRequest
     this.setData({ loading: true })
     try {
       const page = reset ? 1 : this.data.page + 1
@@ -85,28 +94,18 @@ Page({
         pageSize: 20,
         sourceType: this.data.sourceType,
       })
+      if (request !== this.pointsRequest) return
       const items = res.entries.map((e: PointEntry) => this.toViewItem(e))
+      this.syncBalances(res, balanceRequest)
       this.setData({
-        points: res.points,
-        growth: res.growth,
-        honor: res.honor,
-        levelName: res.levelName,
         items: reset ? items : this.data.items.concat(items),
         page,
         hasMore: page * res.pageSize < res.total,
       })
-      const session = getSession()
-      if (session && session.member.points !== res.points) {
-        session.member.points = res.points
-        session.member.growth = res.growth
-        session.member.honor = res.honor
-        session.member.levelName = res.levelName
-        setSession(session)
-      }
     } catch (e: any) {
-      wx.showToast({ title: e.message || '加载失败', icon: 'none' })
+      if (request === this.pointsRequest) wx.showToast({ title: e.message || '加载失败', icon: 'none' })
     } finally {
-      this.setData({ loading: false })
+      if (request === this.pointsRequest) this.setData({ loading: false })
     }
   },
 
@@ -127,25 +126,33 @@ Page({
   },
 
   async loadHonor(reset: boolean) {
-    if (this.data.honorLoading) return
+    if (this.data.honorLoading && !reset) return
+    const request = ++this.honorRequest
+    const balanceRequest = ++this.balanceRequest
     this.setData({ honorLoading: true })
     try {
       const page = reset ? 1 : this.data.honorPage + 1
       const res = await api.listHonorEntries({ page, pageSize: 20 })
+      if (request !== this.honorRequest) return
       const items = res.entries.map((e: HonorEntry) => this.toHonorViewItem(e))
+      this.syncBalances(res, balanceRequest)
       this.setData({
-        honor: res.honor,
-        points: res.points,
-        growth: res.growth,
         honorItems: reset ? items : this.data.honorItems.concat(items),
         honorPage: page,
         honorHasMore: page * res.pageSize < res.total,
       })
     } catch (e: any) {
-      wx.showToast({ title: e.message || '加载失败', icon: 'none' })
+      if (request === this.honorRequest) wx.showToast({ title: e.message || '加载失败', icon: 'none' })
     } finally {
-      this.setData({ honorLoading: false })
+      if (request === this.honorRequest) this.setData({ honorLoading: false })
     }
+  },
+
+  syncBalances(balances: { points: number; growth: number; honor: number; level: string; levelName: string }, request: number) {
+    // 两个明细接口可能交错返回，仅最新发出的请求更新共享余额。
+    if (request !== this.balanceRequest) return
+    this.setData({ points: balances.points, growth: balances.growth, honor: balances.honor, levelName: balances.levelName })
+    updateMemberBalances(balances)
   },
 
   toHonorViewItem(e: HonorEntry): HonorViewItem {

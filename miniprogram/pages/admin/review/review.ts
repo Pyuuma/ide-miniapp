@@ -11,34 +11,55 @@ Page({
     tab: 'pending',
     items: [] as any[],
     loading: false,
+    page: 0,
+    total: 0,
+    hasMore: false,
     panel: null as null | { type: 'approve' | 'reject'; id: string; special: boolean },
     reason: '',
     specialReason: '',
     submitting: false,
   },
 
+  requestId: 0,
+
   onShow() {
-    this.load()
+    this.load(true)
+  },
+
+  onReachBottom() {
+    if (this.data.hasMore && !this.data.loading) this.load(false)
+  },
+
+  onPullDownRefresh() {
+    this.load(true).finally(() => wx.stopPullDownRefresh())
   },
 
   switchTab(e: any) {
     const tab = e.currentTarget.dataset.tab as string
-    this.setData({ tab }, () => this.load())
+    if (tab === this.data.tab || this.data.submitting) return
+    this.setData({ tab, items: [], total: 0, page: 0, hasMore: false, panel: null }, () => this.load(true))
   },
 
-  async load() {
+  async load(reset = true) {
+    if (this.data.loading && !reset) return
+    const requestId = ++this.requestId
+    const tab = this.data.tab
+    const page = reset ? 1 : this.data.page + 1
     this.setData({ loading: true })
     try {
-      const status = this.data.tab === 'pending' ? 'pending' : 'all'
-      const res = await api.listReviewSubmissions(status)
-      const items = res.items
-        .filter((it: any) => (this.data.tab === 'pending' ? it.status === 'pending' : it.status !== 'pending'))
-        .map((it: any) => this.toViewItem(it))
-      this.setData({ items })
+      const res = await api.listReviewSubmissions(tab, { page, pageSize: 20 })
+      if (requestId !== this.requestId || tab !== this.data.tab) return
+      const items = res.items.map((it: any) => this.toViewItem(it))
+      this.setData({
+        items: reset ? items : this.data.items.concat(items),
+        page: res.page,
+        total: res.total,
+        hasMore: res.page * res.pageSize < res.total,
+      })
     } catch (e: any) {
-      wx.showToast({ title: e.message || '加载失败', icon: 'none' })
+      if (requestId === this.requestId) wx.showToast({ title: e.message || '加载失败', icon: 'none' })
     } finally {
-      this.setData({ loading: false })
+      if (requestId === this.requestId) this.setData({ loading: false })
     }
   },
 
@@ -47,7 +68,8 @@ Page({
     const historyText = lastApproved
       ? `最近通过：${formatDateTime(lastApproved.createdAt)}（${timeAgo(lastApproved.createdAt)}）`
       : '该会员此平台暂无历史通过记录'
-    const usageText = `本月已通过 ${it.monthUsage.used} / ${it.monthUsage.max} 次`
+    const periodText = it.monthUsage.period === 'week' ? '本周' : '本月'
+    const usageText = `${periodText}已通过 ${it.monthUsage.used} / ${it.monthUsage.max} 次`
     return {
       ...it,
       platformName: it.platformName || PLATFORM_NAMES[it.platform] || it.platform,
@@ -62,6 +84,7 @@ Page({
   },
 
   openApprove(e: any) {
+    if (this.data.submitting) return
     const id = e.currentTarget.dataset.id as string
     const item = this.data.items.find((i: any) => i._id === id)
     if (!item) return
@@ -79,11 +102,13 @@ Page({
   },
 
   openReject(e: any) {
+    if (this.data.submitting) return
     const id = e.currentTarget.dataset.id as string
     this.setData({ panel: { type: 'reject', id, special: false }, reason: '' })
   },
 
   closePanel() {
+    if (this.data.submitting) return
     this.setData({ panel: null })
   },
 
@@ -116,6 +141,7 @@ Page({
   },
 
   async doApprove(id: string, specialReason: string) {
+    if (this.data.submitting) return
     this.setData({ submitting: true })
     try {
       await api.reviewAction({ id, subAction: 'approve', specialReason })
@@ -123,13 +149,19 @@ Page({
       this.setData({ panel: null })
       this.load()
     } catch (e: any) {
-      wx.showToast({ title: e.message || '操作失败', icon: 'none' })
+      if (e.code === 'REVIEW_LIMIT_REACHED') {
+        this.setData({ panel: { type: 'approve', id, special: true }, specialReason })
+        wx.showToast({ title: '额度已满，请补充特别录入原因', icon: 'none' })
+      } else {
+        wx.showToast({ title: e.message || '操作失败', icon: 'none' })
+      }
     } finally {
       this.setData({ submitting: false })
     }
   },
 
   async doReject(id: string, reason: string) {
+    if (this.data.submitting) return
     this.setData({ submitting: true })
     try {
       await api.reviewAction({ id, subAction: 'reject', reason })
