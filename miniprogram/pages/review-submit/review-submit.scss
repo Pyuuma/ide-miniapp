@@ -6,13 +6,17 @@
 
 .platforms {
   display: flex;
-  gap: 20rpx;
+  flex-wrap: wrap;
+  gap: 16rpx;
+  margin-bottom: 12rpx;
 }
 
 .platform {
-  flex: 1;
+  flex: 1 1 180rpx;
+  min-width: 0;
   text-align: center;
-  padding: 20rpx 0;
+  padding: 20rpx 12rpx;
+  word-break: break-all;
   border: 2rpx solid #d9dce3;
   border-radius: 14rpx;
   color: #555;
@@ -35,6 +39,7 @@
 }
 
 .preview {
+  display: block;
   width: 200rpx;
   height: 200rpx;
   border-radius: 12rpx;
@@ -67,10 +72,6 @@
 
 .textarea {
   height: 160rpx;
-}
-
-.input {
-  margin-top: 12rpx;
 }
 
 .submit {

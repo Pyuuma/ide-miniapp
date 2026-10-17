@@ -18,7 +18,8 @@
   position: relative;
 }
 
-.preview {
+.image-preview {
+  display: block;
   width: 160rpx;
   height: 160rpx;
   border-radius: 12rpx;
@@ -68,31 +69,46 @@
 }
 
 .option-row {
+  padding: 20rpx;
+  margin-bottom: 20rpx;
+  border: 2rpx solid #f0f1f4;
+  border-radius: 14rpx;
+}
+
+.option-heading {
   display: flex;
-  gap: 12rpx;
   align-items: center;
-  margin-bottom: 12rpx;
+  justify-content: space-between;
+  margin-bottom: 16rpx;
+
+  .form-label {
+    margin-bottom: 0;
+  }
 }
 
-.opt-name {
-  flex: 1;
-  height: 72rpx;
+.option-fields {
+  display: flex;
+  gap: 16rpx;
 }
 
-.opt-points {
-  width: 160rpx;
-  height: 72rpx;
-  flex-shrink: 0;
+.option-name-field {
+  flex: 3;
+  min-width: 0;
+}
+
+.option-points-field {
+  flex: 2;
+  min-width: 0;
 }
 
 .opt-remove {
-  width: 48rpx;
-  height: 48rpx;
+  width: 72rpx;
+  height: 72rpx;
   border-radius: 50%;
   background: #f0f1f4;
   color: #c0392b;
   text-align: center;
-  line-height: 44rpx;
+  line-height: 72rpx;
   font-size: 32rpx;
   flex-shrink: 0;
 }
@@ -127,11 +143,14 @@
   height: 420rpx;
 }
 
-.preview {
+.markdown-preview {
+  display: block;
+  word-break: break-all;
   min-height: 160rpx;
   line-height: 1.7;
 }
 
 .submit {
+  width: calc(100% - 48rpx);
   margin: 24rpx;
 }

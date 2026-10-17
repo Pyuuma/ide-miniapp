@@ -32,9 +32,12 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 16rpx;
+  flex-wrap: wrap;
 }
 
 .platform {
+  word-break: break-all;
   font-size: 30rpx;
   font-weight: 600;
 }
@@ -45,12 +48,14 @@
 }
 
 .member {
+  word-break: break-all;
   margin-top: 10rpx;
   font-size: 28rpx;
 }
 
 .meta,
 .history {
+  word-break: break-all;
   margin-top: 6rpx;
   color: #8a8f99;
   font-size: 24rpx;
@@ -85,6 +90,7 @@
 }
 
 .reason {
+  word-break: break-all;
   margin-top: 12rpx;
   color: #c0392b;
   font-size: 24rpx;
@@ -97,6 +103,7 @@
 
   button {
     flex: 1;
+    width: 0;
     font-size: 28rpx;
   }
 }
@@ -111,6 +118,8 @@
 }
 
 .panel {
+  max-height: 85vh;
+  overflow-y: auto;
   width: 100%;
   background: #fff;
   border-radius: 28rpx 28rpx 0 0;
@@ -118,6 +127,12 @@
   display: flex;
   flex-direction: column;
   gap: 24rpx;
+
+  > view,
+  > textarea,
+  > button {
+    flex-shrink: 0;
+  }
 }
 
 .panel-title {

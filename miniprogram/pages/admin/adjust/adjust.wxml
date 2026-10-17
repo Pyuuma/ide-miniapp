@@ -5,10 +5,12 @@
   </view>
 
   <view class="card">
-    <view class="search-row">
+    <view class="search-form">
       <input class="input" value="{{q}}" placeholder="输入账号名或昵称" bindinput="onSearchInput" />
-      <button class="btn-plain scan-btn" bindtap="onScan">扫码</button>
-      <button class="btn-primary search-btn" bindtap="onSearch" disabled="{{searching}}">搜索</button>
+      <view class="search-actions">
+        <button class="btn-plain scan-btn" bindtap="onScan">扫码</button>
+        <button class="btn-primary search-btn" bindtap="onSearch" disabled="{{searching}}">搜索</button>
+      </view>
     </view>
     <view wx:if="{{results.length}}" class="results">
       <view wx:for="{{results}}" wx:key="id" class="result" data-id="{{item.id}}" bindtap="pickMember">
@@ -50,13 +52,13 @@
   <view wx:if="{{tab === 'redeem' && member}}" class="card">
     <view class="section-title">从积分商城选择（可选）</view>
     <view class="pick-row">
-      <picker range="{{products}}" range-key="title" bindchange="onProductChange">
+      <picker class="product-picker" range="{{products}}" range-key="title" bindchange="onProductChange">
         <view class="picker {{selectedProduct ? '' : 'placeholder'}}">{{selectedProduct ? selectedProduct.title : '选择商品'}}</view>
       </picker>
-      <picker wx:if="{{selectedProduct}}" range="{{selectedProduct.options}}" range-key="name" bindchange="onOptionChange">
+      <picker class="option-picker" wx:if="{{selectedProduct}}" range="{{selectedProduct.options}}" range-key="name" bindchange="onOptionChange">
         <view class="picker {{selectedOption ? '' : 'placeholder'}}">{{selectedOption ? selectedOption.name : '选择选项'}}</view>
       </picker>
-      <button wx:if="{{selectedProduct}}" class="btn-plain clear-btn" bindtap="clearSelection">清除</button>
+      <button wx:if="{{selectedProduct}}" class="btn-plain btn-compact clear-btn" bindtap="clearSelection">清除</button>
     </view>
     <view wx:if="{{selectedProduct && selectedOption}}" class="muted">已带出 {{selectedOption.points}} 积分与商品名备注，可继续修改</view>
 

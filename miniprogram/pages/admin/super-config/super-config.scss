@@ -1,5 +1,5 @@
 .page {
-  padding-bottom: 240rpx;
+  padding-bottom: calc(240rpx + env(safe-area-inset-bottom));
 }
 
 .header {
@@ -25,39 +25,54 @@
 }
 
 .remove {
-  width: 48rpx;
-  height: 48rpx;
+  width: 72rpx;
+  height: 72rpx;
   border-radius: 50%;
   background: #f5f6fa;
   color: #c0392b;
   text-align: center;
-  line-height: 44rpx;
+  line-height: 72rpx;
   font-size: 30rpx;
   flex-shrink: 0;
 }
 
-.row-edit {
+.config-entry {
+  padding: 20rpx;
+  margin-bottom: 20rpx;
+  border: 2rpx solid #f0f1f4;
+  border-radius: 14rpx;
+}
+
+.entry-heading {
   display: flex;
   align-items: center;
-  gap: 12rpx;
+  justify-content: space-between;
+  gap: 16rpx;
   margin-bottom: 12rpx;
+
+  .form-label {
+    flex: 1;
+    margin-bottom: 0;
+  }
 }
 
-.flex {
+.entry-columns {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 20rpx;
+}
+
+.entry-field {
   flex: 1;
-  height: 76rpx;
-}
+  min-width: 0;
 
-.num {
-  width: 160rpx;
-  height: 76rpx;
-  flex-shrink: 0;
+  .form-label {
+    font-size: 26rpx;
+  }
 }
 
 .small {
-  font-size: 24rpx;
-  line-height: 2.2;
-  padding: 0 20rpx;
+  font-size: 26rpx;
   margin: 0;
   flex-shrink: 0;
 }
@@ -102,6 +117,8 @@
 
 .diff-panel {
   width: 100%;
+  max-height: 85vh;
+  overflow-y: auto;
   background: #fff;
   border-radius: 20rpx;
   padding: 32rpx 28rpx 24rpx;
@@ -159,7 +176,6 @@
   flex: 1;
   margin: 0;
   font-size: 28rpx;
-  line-height: 2.6;
 }
 
 .picker {
@@ -175,6 +191,11 @@
   align-items: center;
   justify-content: space-between;
   padding: 8rpx 0;
+  gap: 20rpx;
+
+  switch {
+    flex-shrink: 0;
+  }
 }
 
 .chips {
@@ -184,7 +205,7 @@
 }
 
 .chip {
-  padding: 8rpx 22rpx;
+  padding: 16rpx 22rpx;
   border-radius: 999rpx;
   background: #f5f6fa;
   color: #8a8f99;
@@ -193,15 +214,6 @@
   &.on {
     background: #1a1a1a;
     color: #fff;
-  }
-}
-
-.review-row {
-  padding: 12rpx 0;
-  border-bottom: 2rpx solid #f0f1f4;
-
-  &:last-child {
-    border-bottom: none;
   }
 }
 

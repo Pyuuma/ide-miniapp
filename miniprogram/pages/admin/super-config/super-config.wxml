@@ -20,13 +20,23 @@
 
     <view class="card">
       <view class="section-title">消费档位</view>
-      <view wx:for="{{tiers}}" wx:key="key" class="row-edit">
-        <input disabled="{{savingConfig}}" class="input flex" value="{{item.name}}" placeholder="档位名称" data-index="{{index}}" bindinput="onTierNameInput" />
-        <input disabled="{{savingConfig}}" class="input num" type="number" value="{{item.points}}" placeholder="积分" data-index="{{index}}" bindinput="onTierPointsInput" />
-        <input disabled="{{savingConfig}}" class="input num" type="number" value="{{item.defaultAmount}}" placeholder="默认金额" data-index="{{index}}" bindinput="onTierAmountInput" />
-        <view class="remove" data-index="{{index}}" catchtap="removeTier">×</view>
+      <view wx:for="{{tiers}}" wx:key="key" class="config-entry">
+        <view class="entry-heading">
+          <view class="form-label">档位 {{index + 1}} · 名称</view>
+          <view class="remove" data-index="{{index}}" catchtap="removeTier">×</view>
+        </view>
+        <input disabled="{{savingConfig}}" class="input" value="{{item.name}}" placeholder="档位名称" data-index="{{index}}" bindinput="onTierNameInput" />
+        <view class="entry-columns">
+          <view class="entry-field">
+            <view class="form-label">积分</view>
+            <input disabled="{{savingConfig}}" class="input" type="number" value="{{item.points}}" placeholder="积分" data-index="{{index}}" bindinput="onTierPointsInput" />
+          </view>
+          <view class="entry-field">
+            <view class="form-label">默认金额</view>
+            <input disabled="{{savingConfig}}" class="input" type="number" value="{{item.defaultAmount}}" placeholder="默认金额" data-index="{{index}}" bindinput="onTierAmountInput" />
+          </view>
+        </view>
       </view>
-      <view class="hint">三项依次为：档位名称 / 积分 / 默认金额</view>
       <button class="btn-plain small add" bindtap="addTier">＋ 添加档位</button>
     </view>
 
@@ -70,21 +80,31 @@
 
     <view class="card">
       <view class="section-title">评论加分</view>
-      <view wx:for="{{reviews}}" wx:key="key" class="review-row">
-        <view class="row-edit">
-          <input
-            disabled="{{savingConfig}}"
-            class="input flex"
-            value="{{item.name}}"
-            maxlength="20"
-            placeholder="名称，如：小红书"
-            data-index="{{index}}"
-            bindinput="onReviewNameInput"
-          />
-          <input disabled="{{savingConfig}}" class="input num" type="number" value="{{item.points}}" placeholder="积分" data-index="{{index}}" bindinput="onReviewPointsInput" />
-          <input disabled="{{savingConfig}}" class="input num" type="number" value="{{item.maxCount}}" placeholder="次数" data-index="{{index}}" bindinput="onReviewMaxInput" />
+      <view wx:for="{{reviews}}" wx:key="key" class="config-entry">
+        <view class="entry-heading">
+          <view class="form-label">加分项 {{index + 1}} · 名称</view>
           <view class="remove" data-index="{{index}}" catchtap="removeReview">×</view>
         </view>
+        <input
+          disabled="{{savingConfig}}"
+          class="input"
+          value="{{item.name}}"
+          maxlength="20"
+          placeholder="名称，如：小红书"
+          data-index="{{index}}"
+          bindinput="onReviewNameInput"
+        />
+        <view class="entry-columns">
+          <view class="entry-field">
+            <view class="form-label">每次加分</view>
+            <input disabled="{{savingConfig}}" class="input" type="number" value="{{item.points}}" placeholder="积分" data-index="{{index}}" bindinput="onReviewPointsInput" />
+          </view>
+          <view class="entry-field">
+            <view class="form-label">周期内最大次数</view>
+            <input disabled="{{savingConfig}}" class="input" type="number" value="{{item.maxCount}}" placeholder="次数" data-index="{{index}}" bindinput="onReviewMaxInput" />
+          </view>
+        </view>
+        <view class="field-label">计算周期</view>
         <view class="chips">
           <view
             class="chip {{item.period === 'week' ? 'on' : ''}}"
@@ -100,16 +120,19 @@
           >按月</view>
         </view>
       </view>
-      <view class="hint">三项依次为：名称 / 每次加分 / 周期内最大次数；周期用下方按钮切换</view>
       <button class="btn-plain small add" bindtap="addReview">＋ 添加加分项</button>
     </view>
 
     <view class="card">
       <view class="section-title">等级门槛（按成长值）</view>
-      <view wx:for="{{levels}}" wx:key="key" class="row-edit">
-        <input disabled="{{savingConfig}}" class="input flex" value="{{item.name}}" placeholder="等级名称" data-index="{{index}}" bindinput="onLevelNameInput" />
-        <input disabled="{{savingConfig}}" class="input num" type="number" value="{{item.minPoints}}" placeholder="成长值门槛" data-index="{{index}}" bindinput="onLevelMinInput" />
-        <view class="remove" data-index="{{index}}" catchtap="removeLevel">×</view>
+      <view wx:for="{{levels}}" wx:key="key" class="config-entry">
+        <view class="entry-heading">
+          <view class="form-label">等级 {{index + 1}} · 名称</view>
+          <view class="remove" data-index="{{index}}" catchtap="removeLevel">×</view>
+        </view>
+        <input disabled="{{savingConfig}}" class="input" value="{{item.name}}" placeholder="等级名称" data-index="{{index}}" bindinput="onLevelNameInput" />
+        <view class="field-label">成长值门槛</view>
+        <input disabled="{{savingConfig}}" class="input" type="number" value="{{item.minPoints}}" placeholder="成长值门槛" data-index="{{index}}" bindinput="onLevelMinInput" />
       </view>
       <button class="btn-plain small add" bindtap="addLevel">＋ 添加等级</button>
     </view>

@@ -8,7 +8,7 @@
     <view class="section-title">图片轮播（1–9 张）</view>
     <view class="images">
       <view wx:for="{{images}}" wx:key="*this" class="image-item">
-        <image class="preview" src="{{item}}" mode="aspectFill"></image>
+        <image class="image-preview" src="{{item}}" mode="aspectFill"></image>
         <view class="remove" data-index="{{index}}" catchtap="removeImage">×</view>
       </view>
       <view class="add-btn" bindtap="chooseImages">＋</view>
@@ -29,28 +29,38 @@
   </view>
 
   <view class="card">
-    <view class="section-title">报名开始时间（可选）</view>
-    <view class="deadline-row">
-      <picker mode="date" value="{{registerStartDate}}" bindchange="onRegisterStartDateChange">
-        <view class="picker {{registerStartDate ? '' : 'placeholder'}}">{{registerStartDate || '选择日期'}}</view>
-      </picker>
-      <picker mode="time" value="{{registerStartTime}}" bindchange="onRegisterStartTimeChange">
-        <view class="picker {{registerStartTime ? '' : 'placeholder'}}">{{registerStartTime || '选择时间'}}</view>
-      </picker>
-      <button class="btn-plain small" bindtap="clearRegisterStart">清除</button>
+    <view class="form-group">
+      <view class="time-heading">
+        <view class="form-label">报名开始时间（可选）</view>
+        <button class="btn-plain btn-compact" bindtap="clearRegisterStart">清除</button>
+      </view>
+      <view class="deadline-row">
+        <picker class="date-picker" mode="date" value="{{registerStartDate}}" bindchange="onRegisterStartDateChange">
+          <view class="picker {{registerStartDate ? '' : 'placeholder'}}">{{registerStartDate || '选择日期'}}</view>
+        </picker>
+        <picker class="time-picker" mode="time" value="{{registerStartTime}}" bindchange="onRegisterStartTimeChange">
+          <view class="picker {{registerStartTime ? '' : 'placeholder'}}">{{registerStartTime || '选择时间'}}</view>
+        </picker>
+      </view>
     </view>
-    <view class="section-title">报名截止时间（可选）</view>
-    <view class="deadline-row">
-      <picker mode="date" value="{{deadlineDate}}" bindchange="onDateChange">
-        <view class="picker {{deadlineDate ? '' : 'placeholder'}}">{{deadlineDate || '选择日期'}}</view>
-      </picker>
-      <picker mode="time" value="{{deadlineTime}}" bindchange="onTimeChange">
-        <view class="picker {{deadlineTime ? '' : 'placeholder'}}">{{deadlineTime || '选择时间'}}</view>
-      </picker>
-      <button class="btn-plain small" bindtap="clearDeadline">清除</button>
+    <view class="form-group">
+      <view class="time-heading">
+        <view class="form-label">报名截止时间（可选）</view>
+        <button class="btn-plain btn-compact" bindtap="clearDeadline">清除</button>
+      </view>
+      <view class="deadline-row">
+        <picker class="date-picker" mode="date" value="{{deadlineDate}}" bindchange="onDateChange">
+          <view class="picker {{deadlineDate ? '' : 'placeholder'}}">{{deadlineDate || '选择日期'}}</view>
+        </picker>
+        <picker class="time-picker" mode="time" value="{{deadlineTime}}" bindchange="onTimeChange">
+          <view class="picker {{deadlineTime ? '' : 'placeholder'}}">{{deadlineTime || '选择时间'}}</view>
+        </picker>
+      </view>
     </view>
-    <view class="section-title">名额上限（可选，留空不限）</view>
-    <input class="input" type="number" value="{{capacity}}" placeholder="例如：16" bindinput="onCapacityInput" />
+    <view class="form-group">
+      <view class="form-label">名额上限（可选，留空不限）</view>
+      <input class="input" type="number" value="{{capacity}}" placeholder="例如：16" bindinput="onCapacityInput" />
+    </view>
   </view>
 
   <view class="card">
@@ -67,7 +77,7 @@
       placeholder="支持 Markdown：标题、加粗、列表、代码块、图片等"
       bindinput="onMarkdownInput"
     ></textarea>
-    <rich-text wx:else class="preview" nodes="{{previewHtml}}"></rich-text>
+    <rich-text wx:else class="markdown-preview" nodes="{{previewHtml}}"></rich-text>
   </view>
 
   <button class="btn-primary submit" bindtap="onSave" disabled="{{saving}}">保存</button>

@@ -39,12 +39,12 @@
   </view>
 
   <view class="card">
-    <view class="field">
-      <text class="label">昵称</text>
-      <input class="value input" value="{{nickname}}" maxlength="20" placeholder="1–20 个字符" bindinput="onNicknameInput" />
+    <view class="form-group">
+      <view class="form-label">昵称</view>
+      <input class="input" value="{{nickname}}" maxlength="20" placeholder="1–20 个字符" bindinput="onNicknameInput" />
     </view>
-    <view class="field column">
-      <text class="label">签名</text>
+    <view class="form-group">
+      <view class="form-label">签名</view>
       <textarea class="textarea" value="{{signature}}" maxlength="50" placeholder="一句话介绍自己（可选，最多 50 字）" bindinput="onSignatureInput" />
     </view>
     <button class="btn-primary save-btn" bindtap="onSaveProfile" disabled="{{saving}}">保存资料</button>

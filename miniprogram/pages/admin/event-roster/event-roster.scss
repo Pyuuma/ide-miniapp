@@ -3,6 +3,7 @@
 }
 
 .title {
+  word-break: break-all;
   font-size: 38rpx;
   font-weight: 700;
 }
@@ -10,12 +11,13 @@
 .actions {
   display: flex;
   gap: 16rpx;
+  flex-wrap: wrap;
 }
 
 .actions button {
-  flex: 1;
+  flex: 1 1 180rpx;
   font-size: 26rpx;
-  line-height: 2.2;
+  padding: 16rpx 12rpx;
   margin: 0;
 }
 
@@ -31,6 +33,7 @@
 }
 
 .check {
+  flex-shrink: 0;
   width: 44rpx;
   height: 44rpx;
   border-radius: 50%;
@@ -53,11 +56,14 @@
 }
 
 .name {
+  word-break: break-all;
   font-size: 30rpx;
 }
 
 .remove {
-  padding: 8rpx 16rpx;
+  flex-shrink: 0;
+  margin-left: 16rpx;
+  padding: 16rpx;
   border-radius: 10rpx;
   color: #c0392b;
   border: 2rpx solid #c0392b;
@@ -96,13 +102,13 @@
 }
 
 .small {
-  width: 140rpx;
+  width: 120rpx;
   font-size: 24rpx;
-  line-height: 2.2;
   margin: 0;
 }
 
 .result {
+  word-break: break-all;
   padding: 20rpx 0;
   border-bottom: 2rpx solid #f0f1f4;
 }
@@ -121,18 +127,21 @@
 }
 
 .award-name {
-  width: 220rpx;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+  word-break: break-all;
 }
 
 .award-input {
-  flex: 1;
-  height: 72rpx;
+  flex: 0 0 240rpx;
+  width: 240rpx;
 }
 
 .panel .btn-primary,
 .panel .btn-plain {
   margin-top: 16rpx;
+}
+
+.panel .search-row button {
+  margin-top: 0;
 }

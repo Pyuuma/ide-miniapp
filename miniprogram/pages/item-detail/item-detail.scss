@@ -1,5 +1,5 @@
 .page {
-  padding-bottom: 40rpx;
+  padding-bottom: calc(40rpx + env(safe-area-inset-bottom));
 }
 
 .swiper {
@@ -16,6 +16,7 @@
 }
 
 .title {
+  word-break: break-all;
   margin-top: 20rpx;
   font-size: 38rpx;
   font-weight: 700;
@@ -34,6 +35,13 @@
   padding: 22rpx 0;
   border-bottom: 2rpx solid #f0f1f4;
   font-size: 28rpx;
+  gap: 20rpx;
+
+  > text:first-child {
+    flex: 1;
+    min-width: 0;
+    word-break: break-all;
+  }
 
   &:last-child {
     border-bottom: none;
@@ -41,6 +49,9 @@
 }
 
 .points {
+  max-width: 45%;
+  word-break: break-all;
+  text-align: right;
   color: #1a1a1a;
   font-weight: 600;
 }

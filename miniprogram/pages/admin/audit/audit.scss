@@ -20,9 +20,10 @@
 
 .filter-row {
   display: flex;
-  align-items: center;
-  gap: 16rpx;
-  padding: 16rpx 0;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12rpx;
+  padding: 24rpx 0;
   border-bottom: 2rpx solid #f0f1f4;
 
   &:last-of-type {
@@ -30,44 +31,29 @@
   }
 
   .label {
-    width: 130rpx;
-    flex-shrink: 0;
+    margin-top: 0;
     color: #555;
-  }
-
-  .input {
-    flex: 1;
-  }
-}
-
-.member-filter {
-  flex: 1;
-  display: flex;
-  gap: 12rpx;
-
-  .input {
-    flex: 1;
+    font-size: 28rpx;
   }
 }
 
 .picked {
   color: #1a1a1a;
   font-size: 24rpx;
-  max-width: 180rpx;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  word-break: break-all;
 }
 
 .options {
-  flex: 1;
   display: flex;
   flex-wrap: wrap;
   gap: 12rpx;
 }
 
 .opt {
-  padding: 6rpx 18rpx;
+  display: flex;
+  align-items: center;
+  min-height: 72rpx;
+  padding: 12rpx 20rpx;
   border: 2rpx solid #d9dce3;
   border-radius: 999rpx;
   font-size: 24rpx;
@@ -87,14 +73,12 @@
 
   button {
     flex: 1;
+    width: 0;
   }
 }
 
 .small {
-  font-size: 24rpx;
-  line-height: 2.2;
-  padding: 0 24rpx;
-  border-radius: 10rpx;
+  font-size: 28rpx;
 }
 
 .item {
@@ -110,6 +94,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 8rpx 16rpx;
 }
 
 .action {
@@ -129,12 +115,14 @@
 }
 
 .line {
+  word-break: break-all;
   margin-top: 8rpx;
   color: #555;
   font-size: 26rpx;
 }
 
 .reason {
+  word-break: break-all;
   margin-top: 8rpx;
   color: #c0392b;
   font-size: 24rpx;
@@ -150,6 +138,8 @@
 }
 
 .panel {
+  max-height: 85vh;
+  overflow-y: auto;
   width: 100%;
   background: #fff;
   border-radius: 28rpx 28rpx 0 0;
@@ -157,6 +147,11 @@
   display: flex;
   flex-direction: column;
   gap: 20rpx;
+
+  > view,
+  > button {
+    flex-shrink: 0;
+  }
 }
 
 .panel-title {
@@ -166,6 +161,7 @@
 }
 
 .result {
+  word-break: break-all;
   padding: 20rpx;
   background: #f6f7fb;
   border-radius: 12rpx;

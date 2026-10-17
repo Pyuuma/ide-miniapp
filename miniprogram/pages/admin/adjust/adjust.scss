@@ -19,30 +19,36 @@
   }
 }
 
-.search-row {
+.search-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.search-actions {
   display: flex;
   gap: 16rpx;
 }
 
-.search-btn {
-  width: 160rpx;
-  flex-shrink: 0;
-  font-size: 26rpx;
-}
-
+.search-btn,
 .scan-btn {
-  width: 120rpx;
-  flex-shrink: 0;
+  flex: 1;
   font-size: 26rpx;
-  padding: 0;
 }
 
 .result {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 16rpx;
   padding: 22rpx 0;
   border-bottom: 2rpx solid #f0f1f4;
+
+  > view {
+    flex: 1;
+    min-width: 0;
+    word-break: break-all;
+  }
 }
 
 .arrow {
@@ -55,6 +61,14 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-wrap: wrap;
+    gap: 20rpx;
+
+    > view:first-child {
+      flex: 1;
+      min-width: 180rpx;
+      word-break: break-all;
+    }
   }
 
   .nickname {
@@ -73,6 +87,10 @@
   font-size: 30rpx;
   font-weight: 600;
   margin: 28rpx 0 16rpx;
+
+  &:first-child {
+    margin-top: 0;
+  }
 }
 
 .textarea {
@@ -87,10 +105,22 @@
   display: flex;
   gap: 12rpx;
   align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 12rpx;
+}
+
+.product-picker {
+  flex: 1 1 100%;
+  min-width: 0;
+}
+
+.option-picker {
+  flex: 1;
+  min-width: 0;
 }
 
 .picker {
-  flex: 1;
+  width: 100%;
   height: 88rpx;
   background: #f5f6fa;
   border-radius: 12rpx;
@@ -106,8 +136,5 @@
 }
 
 .clear-btn {
-  font-size: 24rpx;
-  line-height: 2;
-  padding: 0 16rpx;
-  margin: 0;
+  min-height: 88rpx;
 }

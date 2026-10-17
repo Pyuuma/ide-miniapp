@@ -11,9 +11,12 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 16rpx;
 }
 
 .platform {
+  word-break: break-all;
   font-size: 30rpx;
   font-weight: 600;
 }
@@ -61,6 +64,7 @@
 }
 
 .reject {
+  word-break: break-all;
   margin-top: 12rpx;
   color: #c0392b;
   font-size: 24rpx;

@@ -10,8 +10,15 @@ view,
 text,
 button,
 input,
-textarea {
+textarea,
+picker,
+scroll-view,
+rich-text {
   box-sizing: border-box;
+}
+
+.page {
+  padding-bottom: calc(32rpx + env(safe-area-inset-bottom));
 }
 
 .card {
@@ -22,29 +29,50 @@ textarea {
   box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.04);
 }
 
-.btn-primary {
-  background: #1a1a1a;
-  color: #fff;
+.btn-primary,
+.btn-plain {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-width: 0;
+  min-height: 88rpx;
+  margin: 0;
+  padding: 16rpx 24rpx;
   border-radius: 14rpx;
   font-size: 30rpx;
-  line-height: 2.6;
+  line-height: 1.4;
 
   &::after {
     border: none;
   }
 }
 
+.btn-primary {
+  background: #1a1a1a;
+  color: #fff;
+}
+
 .btn-plain {
   background: #fff;
   color: #1a1a1a;
   border: 2rpx solid #d9dce3;
-  border-radius: 14rpx;
-  font-size: 30rpx;
-  line-height: 2.5;
+}
 
-  &::after {
-    border: none;
-  }
+.btn-primary[disabled],
+.btn-plain[disabled] {
+  background: #eceef2;
+  color: #8a8f99;
+  border-color: #e1e4e9;
+}
+
+.btn-compact {
+  flex: 0 0 auto;
+  width: auto;
+  min-height: 80rpx;
+  padding: 12rpx 24rpx;
+  font-size: 26rpx;
+  white-space: nowrap;
 }
 
 .muted {
@@ -55,6 +83,7 @@ textarea {
 .field {
   display: flex;
   align-items: center;
+  gap: 20rpx;
   padding: 22rpx 0;
   border-bottom: 2rpx solid #f0f1f4;
 
@@ -64,18 +93,23 @@ textarea {
 
   .label {
     width: 150rpx;
+    flex-shrink: 0;
     color: #555;
   }
 
   .value {
     flex: 1;
+    min-width: 0;
     text-align: right;
+    word-break: break-all;
   }
 }
 
 .input,
 .textarea {
+  display: block;
   width: 100%;
+  min-width: 0;
   background: #f5f6fa;
   border-radius: 12rpx;
   font-size: 28rpx;
@@ -89,6 +123,36 @@ textarea {
 .textarea {
   height: 160rpx;
   padding: 16rpx 20rpx;
+  line-height: 1.6;
+}
+
+.form-group + .form-group {
+  margin-top: 28rpx;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 12rpx;
+  color: #555;
+  font-size: 28rpx;
+}
+
+.form-input-row,
+.search-row {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+
+  .input {
+    flex: 1;
+    width: 0;
+    min-width: 0;
+  }
+
+  button {
+    flex: 0 0 auto;
+    margin: 0;
+  }
 }
 
 .empty {

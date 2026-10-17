@@ -17,15 +17,15 @@
   <view class="card">
     <view class="filter-row">
       <text class="label">会员</text>
-      <view class="member-filter">
+      <view class="member-filter form-input-row">
         <input class="input" value="{{memberQ}}" placeholder="账号名/昵称" bindinput="onMemberSearchInput" />
-        <button class="btn-plain small" bindtap="onMemberSearch">查找</button>
+        <button class="btn-plain btn-compact" bindtap="onMemberSearch">查找</button>
       </view>
       <text wx:if="{{memberLabel}}" class="picked">{{memberLabel}}</text>
     </view>
     <view class="filter-row">
       <text class="label">操作人</text>
-      <input class="input" value="{{actorId}}" placeholder="openid 或昵称（精确匹配 openid）" bindinput="onActorInput" />
+      <input class="input" value="{{actorId}}" placeholder="完整 openid（精确匹配）" bindinput="onActorInput" />
     </view>
     <view class="filter-row">
       <text class="label">变动类型</text>

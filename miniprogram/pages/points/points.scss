@@ -1,5 +1,5 @@
 .page {
-  padding-bottom: 180rpx;
+  padding-bottom: calc(180rpx + env(safe-area-inset-bottom));
 }
 
 .summary {
@@ -8,17 +8,20 @@
 
 .summary-row {
   display: flex;
+  gap: 16rpx;
 }
 
 .summary-item {
   flex: 1;
+  min-width: 0;
   text-align: center;
 }
 
 .points {
-  font-size: 64rpx;
+  font-size: 52rpx;
   font-weight: 700;
-  line-height: 1;
+  line-height: 1.2;
+  word-break: break-all;
 }
 
 .label {
@@ -97,6 +100,7 @@
 .entry {
   display: flex;
   align-items: center;
+  gap: 20rpx;
   padding: 24rpx 0;
   border-bottom: 2rpx solid #f0f1f4;
 
@@ -107,6 +111,8 @@
 
 .entry-main {
   flex: 1;
+  min-width: 0;
+  word-break: break-all;
 }
 
 .source {
@@ -132,6 +138,9 @@
 }
 
 .delta {
+  max-width: 45%;
+  word-break: break-all;
+  text-align: right;
   font-size: 36rpx;
   font-weight: 600;
   color: #1a7f37;

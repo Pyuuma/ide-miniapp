@@ -1,5 +1,5 @@
 .page {
-  padding-bottom: 40rpx;
+  padding-bottom: calc(40rpx + env(safe-area-inset-bottom));
 }
 
 .swiper {
@@ -16,6 +16,7 @@
 }
 
 .title {
+  word-break: break-all;
   margin-top: 20rpx;
   font-size: 38rpx;
   font-weight: 700;
@@ -37,5 +38,6 @@
 }
 
 .submit {
+  width: calc(100% - 48rpx);
   margin: 24rpx;
 }

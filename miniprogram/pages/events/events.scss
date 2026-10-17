@@ -1,5 +1,5 @@
 .page {
-  padding-bottom: 180rpx;
+  padding-bottom: calc(180rpx + env(safe-area-inset-bottom));
 }
 
 .tabs {
@@ -53,6 +53,8 @@
 }
 
 .title {
+  flex: 1;
+  min-width: 0;
   font-size: 32rpx;
   font-weight: 600;
   overflow: hidden;
@@ -95,5 +97,4 @@
   width: 280rpx;
   margin: 32rpx auto 0;
   font-size: 28rpx;
-  line-height: 2.4;
 }

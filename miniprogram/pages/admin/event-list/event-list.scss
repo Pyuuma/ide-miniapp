@@ -20,6 +20,7 @@
 }
 
 .create {
+  width: calc(100% - 48rpx);
   margin: 24rpx;
 }
 
@@ -27,6 +28,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 20rpx;
   padding: 24rpx 0;
   border-bottom: 2rpx solid #f0f1f4;
 
@@ -36,7 +39,7 @@
 }
 
 .info {
-  flex: 1;
+  flex: 1 1 100%;
   min-width: 0;
 }
 
@@ -47,6 +50,8 @@
 }
 
 .title {
+  flex: 1;
+  min-width: 0;
   font-size: 30rpx;
   font-weight: 600;
   overflow: hidden;
@@ -66,12 +71,15 @@
 .actions {
   display: flex;
   gap: 12rpx;
-  margin-left: 20rpx;
+  width: 100%;
+  justify-content: flex-end;
 }
 
 .small {
+  flex: 0 0 auto;
+  width: auto;
+  min-height: 80rpx;
   font-size: 24rpx;
-  line-height: 2;
-  padding: 0 20rpx;
+  padding: 12rpx 24rpx;
   margin: 0;
 }

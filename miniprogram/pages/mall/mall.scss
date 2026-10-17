@@ -2,7 +2,7 @@
   text-align: center;
 }
 
-.points {
+.summary .points {
   font-size: 80rpx;
   font-weight: 700;
   line-height: 1.1;
@@ -38,6 +38,7 @@
 }
 
 .title {
+  word-break: break-all;
   font-size: 32rpx;
   font-weight: 600;
 }
@@ -48,6 +49,19 @@
   margin-top: 8rpx;
   font-size: 26rpx;
   color: #555;
+  gap: 16rpx;
+
+  > text:first-child {
+    flex: 1;
+    min-width: 0;
+    word-break: break-all;
+  }
+
+  .points {
+    max-width: 50%;
+    word-break: break-all;
+    text-align: right;
+  }
 }
 
 .points {

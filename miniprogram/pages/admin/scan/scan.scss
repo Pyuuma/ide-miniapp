@@ -33,7 +33,7 @@
 }
 
 .search-btn {
-  width: 160rpx;
+  width: 120rpx;
   flex-shrink: 0;
   font-size: 26rpx;
 }
@@ -42,8 +42,15 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 16rpx;
   padding: 22rpx 0;
   border-bottom: 2rpx solid #f0f1f4;
+
+  > view {
+    flex: 1;
+    min-width: 0;
+    word-break: break-all;
+  }
 }
 
 .arrow {
@@ -56,6 +63,14 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-wrap: wrap;
+    gap: 16rpx;
+
+    > view:first-child {
+      flex: 1;
+      min-width: 180rpx;
+      word-break: break-all;
+    }
   }
 
   .nickname {
@@ -64,6 +79,8 @@
   }
 
   .level {
+    max-width: 100%;
+    word-break: break-all;
     padding: 6rpx 18rpx;
     border: 2rpx solid #d9dce3;
     border-radius: 999rpx;
@@ -85,6 +102,15 @@
   &.on {
     background: #fff7e6;
     color: #8a5a00;
+  }
+
+  checkbox {
+    flex-shrink: 0;
+  }
+
+  text {
+    min-width: 0;
+    word-break: break-all;
   }
 }
 
@@ -111,6 +137,10 @@
   font-weight: 600;
   margin: 28rpx 0 16rpx;
 
+  &:first-child {
+    margin-top: 0;
+  }
+
   &.warn {
     color: #c0392b;
   }
@@ -118,11 +148,14 @@
 
 .tiers {
   display: flex;
+  flex-wrap: wrap;
   gap: 20rpx;
 }
 
 .tier {
-  flex: 1;
+  flex: 1 1 180rpx;
+  min-width: 0;
+  word-break: break-all;
   border: 2rpx solid #d9dce3;
   border-radius: 14rpx;
   padding: 20rpx;

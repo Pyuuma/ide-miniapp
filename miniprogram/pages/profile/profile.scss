@@ -1,13 +1,18 @@
 .page {
-  padding-bottom: 180rpx;
+  padding-bottom: calc(180rpx + env(safe-area-inset-bottom));
 }
 
 .profile-card {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .avatar-btn {
+  flex: 0 0 120rpx;
+  width: 120rpx;
+  height: 120rpx;
+  margin: 0;
   padding: 0;
   background: transparent;
   line-height: 1;
@@ -19,6 +24,7 @@
 }
 
 .avatar {
+  display: block;
   width: 120rpx;
   height: 120rpx;
   border-radius: 50%;
@@ -36,6 +42,8 @@
 .name-line {
   margin-left: 28rpx;
   flex: 1;
+  min-width: 0;
+  word-break: break-all;
 }
 
 .nickname {
@@ -50,6 +58,7 @@
 }
 
 .rename-hint {
+  width: 100%;
   margin-top: 20rpx;
   padding: 16rpx 20rpx;
   background: #f6f7fb;
@@ -74,26 +83,8 @@
   text-decoration: underline;
 }
 
-.field {
-  &.column {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .label {
-    width: auto;
-  }
-
-  .input {
-    text-align: right;
-    width: auto;
-    flex: 1;
-  }
-
-  .textarea {
-    margin-top: 16rpx;
-    height: 200rpx;
-  }
+.textarea {
+  height: 200rpx;
 }
 
 .save-btn {
@@ -124,6 +115,8 @@
 }
 
 .panel {
+  max-height: 85vh;
+  overflow-y: auto;
   width: 100%;
   background: #fff;
   border-radius: 28rpx 28rpx 0 0;
@@ -131,6 +124,12 @@
   display: flex;
   flex-direction: column;
   gap: 24rpx;
+
+  > view,
+  > input,
+  > button {
+    flex-shrink: 0;
+  }
 }
 
 .panel-title {

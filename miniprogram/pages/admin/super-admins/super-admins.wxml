@@ -35,9 +35,9 @@
       <view class="search-row">
         <input
           disabled="{{savingAdmins}}"
-          class="input search-input"
+          class="input"
           value="{{adminQuery}}"
-          placeholder="账号 ID / 账号名 / openid 模糊搜索"
+          placeholder="账号名、ID 或 openid"
           confirm-type="search"
           bindinput="onAdminQueryInput"
           bindconfirm="searchAdmins"
